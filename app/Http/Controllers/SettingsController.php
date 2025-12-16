@@ -26,12 +26,6 @@ class SettingsController extends Controller
         Setting::setValue('system_name', $request->system_name);
 
         if ($request->hasFile('system_logo')) {
-            // Delete old logo if exists
-            $oldLogo = Setting::getValue('system_logo');
-            if ($oldLogo && Storage::disk('public')->exists($oldLogo)) {
-                Storage::disk('public')->delete($oldLogo);
-            }
-
             $path = $request->file('system_logo')->store('settings', 'public');
             Setting::setValue('system_logo', $path);
         }
