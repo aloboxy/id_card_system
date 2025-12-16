@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
-
 use Yajra\DataTables\Facades\DataTables;
 
 class IdCardTemplateController extends Controller
@@ -19,37 +18,42 @@ class IdCardTemplateController extends Controller
     {
         if ($request->ajax()) {
             $data = IdCardTemplate::with('school')->select('id_card_templates.*');
+
             return DataTables::of($data)
                 ->addIndexColumn()
-                ->editColumn('name', function($row){
+                ->editColumn('name', function ($row) {
                     return '<div class="font-medium text-gray-900">'.$row->name.'</div>
                             <div class="text-xs text-gray-500">'.(\Illuminate\Support\Str::limit($row->description, 50)).'</div>';
                 })
-                ->addColumn('school_name', function($row){
+                ->addColumn('school_name', function ($row) {
                     return '<div class="text-sm text-gray-600">'.($row->school->name ?? 'N/A').'</div>';
                 })
-                ->addColumn('dimensions', function($row){
+                ->addColumn('dimensions', function ($row) {
                     return '<div class="text-xs text-gray-500">'.$row->width.'x'.$row->height.'px</div>';
                 })
-                ->editColumn('is_active', function($row){
-                    if($row->is_active) {
+                ->editColumn('is_active', function ($row) {
+                    if ($row->is_active) {
                         return '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>';
                     } else {
                         return '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Inactive</span>';
                     }
                 })
-                ->addColumn('action', function($row){
+                ->addColumn('action', function ($row) {
                     $editUrl = route('id-card-templates.edit', $row->id);
                     $deleteUrl = route('id-card-templates.destroy', $row->id);
                     $csrf = csrf_field();
                     $method = method_field('DELETE');
-                    
+
                     return '<div class="text-right text-sm font-medium">
-                            <a href="'.$editUrl.'" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
+                              <a href="'.$editUrl.'" class="p-1 px-2 text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
                             <form action="'.$deleteUrl.'" method="POST" class="inline-block" onsubmit="return confirm(\'Are you sure you want to delete this template?\');">
                                 '.$csrf.'
                                 '.$method.'
-                                <button type="submit" class="text-red-600 hover:text-red-900">Delete</button>
+                                <button type="submit" class="p-1 px-2 text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Delete">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
                             </form>
                             </div>';
                 })

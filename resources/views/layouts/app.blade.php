@@ -41,18 +41,26 @@
                     <i class="fas fa-th-large w-6"></i>
                     <span class="font-medium">Dashboard</span>
                 </a>
+                @if(Auth::user()->isAdmin())
+                <a href="{{ route('users.index') }}" class="flex items-center px-4 py-3 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors {{ request()->routeIs('users.*') ? 'bg-indigo-50 text-indigo-600' : '' }}">
+                    <i class="fas fa-users w-6"></i>
+                    <span class="font-medium">Users</span>
+                </a>
                 <a href="{{ route('schools.index') }}" class="flex items-center px-4 py-3 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors {{ request()->routeIs('schools.*') ? 'bg-indigo-50 text-indigo-600' : '' }}">
                     <i class="fas fa-school w-6"></i>
                     <span class="font-medium">Schools</span>
                 </a>
+                @endif
                 <a href="{{ route('students.index') }}" class="flex items-center px-4 py-3 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors {{ request()->routeIs('students.*') ? 'bg-indigo-50 text-indigo-600' : '' }}">
                     <i class="fas fa-user-graduate w-6"></i>
                     <span class="font-medium">Students</span>
                 </a>
+                @if(Auth::user()->isAdmin())
                 <a href="{{ route('id-card-templates.index') }}" class="flex items-center px-4 py-3 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors {{ request()->routeIs('id-card-templates.*') ? 'bg-indigo-50 text-indigo-600' : '' }}">
                     <i class="fas fa-id-card w-6"></i>
                     <span class="font-medium">Templates</span>
                 </a>
+                @endif
             </nav>
             <div class="absolute bottom-0 w-full p-4 border-t border-gray-200">
                 <form method="POST" action="{{ route('logout') }}">
