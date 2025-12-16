@@ -27,7 +27,7 @@
 
 @push('styles')
 <!-- DataTables CSS -->
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+
 <style>
     /* Tailwind-ish styling for DataTables */
     .dataTables_wrapper .dataTables_length select {
@@ -50,14 +50,31 @@
 
 @push('scripts')
 <!-- jQuery and DataTables JS -->
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 
 <script>
     $(document).ready(function() {
         $('#schools-table').DataTable({
             processing: true,
             serverSide: true,
+             dom: 'Blfrtip',
+            buttons: [
+                {
+                    extend: 'copy',
+                    text: '<i class="fas fa-copy mr-1"></i> Copy',
+                    className: 'bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center border border-gray-300'
+                },
+                {
+                    extend: 'excel',
+                    text: '<i class="fas fa-file-excel mr-1"></i> Excel',
+                    className: 'bg-green-100 hover:bg-green-200 text-green-800 font-bold py-2 px-4 rounded inline-flex items-center border border-green-300'
+                },
+                {
+                    extend: 'pdf',
+                    text: '<i class="fas fa-file-pdf mr-1"></i> PDF',
+                    className: 'bg-red-100 hover:bg-red-200 text-red-800 font-bold py-2 px-4 rounded inline-flex items-center border border-red-300'
+                }
+            ],
+            lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
             ajax: "{{ route('schools.index') }}",
             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
