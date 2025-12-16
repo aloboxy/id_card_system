@@ -55,10 +55,7 @@
                     <i class="fas fa-school w-6"></i>
                     <span class="font-medium">Schools</span>
                 </a>
-                <a href="{{ route('settings.edit') }}" class="flex items-center px-4 py-3 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors {{ request()->routeIs('settings.*') ? 'bg-indigo-50 text-indigo-600' : '' }}">
-                    <i class="fas fa-cog w-6"></i>
-                    <span class="font-medium">Settings</span>
-                </a>
+              
                 @endif
                 <a href="{{ route('students.index') }}" class="flex items-center px-4 py-3 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors {{ request()->routeIs('students.*') ? 'bg-indigo-50 text-indigo-600' : '' }}">
                     <i class="fas fa-user-graduate w-6"></i>
@@ -68,6 +65,11 @@
                 <a href="{{ route('id-card-templates.index') }}" class="flex items-center px-4 py-3 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors {{ request()->routeIs('id-card-templates.*') ? 'bg-indigo-50 text-indigo-600' : '' }}">
                     <i class="fas fa-id-card w-6"></i>
                     <span class="font-medium">Templates</span>
+                </a>
+
+                  <a href="{{ route('settings.edit') }}" class="flex items-center px-4 py-3 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors {{ request()->routeIs('settings.*') ? 'bg-indigo-50 text-indigo-600' : '' }}">
+                    <i class="fas fa-cog w-6"></i>
+                    <span class="font-medium">Settings</span>
                 </a>
                 @endif
             </nav>
