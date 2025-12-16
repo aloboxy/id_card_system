@@ -24,4 +24,5 @@ jobs:
             **/.env
             **/node_modules/**
             **/tests/**
+            **/vendor/**
             
