@@ -192,7 +192,7 @@ class Student extends Model
         }
 
         if ($this->date_of_birth) {
-            $qrData .= "DOB: {$this->date_of_birth}\n";
+            $qrData .= "DOB: {$this->date_of_birth->format('Y-m-d')}\n";
         }
 
         if ($this->gender) {
