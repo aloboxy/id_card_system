@@ -34,7 +34,7 @@
                     @enderror
                 </div>
 
-                <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="col-span-full grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                         <label for="first_name" class="block text-sm font-medium text-gray-700">First Name</label>
                         <input type="text" name="first_name" id="first_name" value="{{ old('first_name') }}" 
