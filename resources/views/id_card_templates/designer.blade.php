@@ -218,7 +218,7 @@
     @endif
     <input type="hidden" name="name" id="hidden-name" value="{{ $template->name ?? 'New Template' }}">
     <input type="hidden" name="school_id" id="hidden-school-id" value="{{ $template->school_id ?? '' }}">
-    <input type="hidden" name="active" id="hidden-active" value="{{ isset($template) && $template->active ? '1' : '0' }}">
+    <input type="hidden" name="active" id="hidden-active" value="{{ isset($template) && $template->is_active ? '1' : '0' }}">
     <input type="hidden" name="width" id="hidden-width" value="{{ $template->width ?? 350 }}">
     <input type="hidden" name="height" id="hidden-height" value="{{ $template->height ?? 550 }}">
     <input type="hidden" name="design_data" id="design_data">
@@ -805,6 +805,12 @@
 
             document.getElementById('hidden-name').value = nameInput.value;
             document.getElementById('hidden-school-id').value = schoolSelect.value;
+            
+            // Explicitly sync active status
+            const activeCheckbox = document.getElementById('template-active');
+            if (activeCheckbox) {
+                document.getElementById('hidden-active').value = activeCheckbox.checked ? '1' : '0';
+            }
             
             console.log('Checking canvases...');
             if (typeof canvasFront === 'undefined') {
