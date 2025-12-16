@@ -25,4 +25,5 @@ jobs:
             **/node_modules/**
             **/tests/**
             **/vendor/**
+            **/storage/**
             
