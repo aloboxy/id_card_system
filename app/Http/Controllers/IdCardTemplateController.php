@@ -223,26 +223,10 @@ class IdCardTemplateController extends Controller
             $students = \App\Models\Student::take(5)->get();
         }
 
-        // Generate QR Codes for each student
-        foreach ($students as $student) {
-            $qrData = json_encode([
-                'id' => $student->student_id,
-                'name' => $student->full_name,
-                'class' => $student->class,
-            ]);
-            // Generate SVG QR code and convert to base64 data URI
-            // Note: Fabric.js handles SVG well.
-            // SimpleQRCode::format('svg')->generate($qrData) returns the SVG string.
-            // We can embed this as a data URI.
-            $school_expiry_date = \App\Models\School::where('id', $idCardTemplate->school_id)->first()->expire_date;
-            $school_expiry_data = Carbon::parse($school_expiry_date)->format('Y-m-d');
-
-            $school_issue_date = \App\Models\School::where('id', $idCardTemplate->school_id)->first()->date_issue;
-            $school_issue_data = Carbon::parse($school_issue_date)->format('Y-m-d');
-            $svg = \SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')->size(100)->generate($qrData);
-            $base64 = base64_encode($svg);
-            $student->qr_code_url = 'data:image/svg+xml;base64,'.$base64;
-        }
+        // Fetch school dates once
+        $school = $idCardTemplate->school;
+        $school_expiry_data = $school->expire_date ? Carbon::parse($school->expire_date)->format('Y-m-d') : date('Y-m-d');
+        $school_issue_data = $school->date_issue ? Carbon::parse($school->date_issue)->format('Y-m-d') : date('Y-m-d');
 
         return view('id_card_templates.generate', [
             'template' => $idCardTemplate,

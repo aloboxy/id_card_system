@@ -34,7 +34,7 @@
 
                     <div class="flex flex-col items-center p-4 border rounded-lg bg-gray-50">
                         <div class="bg-white p-2 rounded shadow-sm">
-                            <img src="{{ $student->qr_code }}" alt="QR Code" class="w-40 h-40">
+                            <img src="{{ $student->qr_code_url }}" alt="QR Code" class="w-40 h-40">
                         </div>
                         <span class="text-sm font-medium text-gray-500 mt-2">QR Code</span>
                     </div>
