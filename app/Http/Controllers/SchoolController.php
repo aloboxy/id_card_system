@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\School;
 use Illuminate\Http\Request;
-
 use Yajra\DataTables\Facades\DataTables;
 
 class SchoolController extends Controller
@@ -16,35 +15,40 @@ class SchoolController extends Controller
     {
         if ($request->ajax()) {
             $data = School::latest()->select('*');
+
             return DataTables::of($data)
                 ->addIndexColumn()
-                ->editColumn('name', function($row){
+                ->editColumn('name', function ($row) {
                     return '<div class="font-medium text-gray-800">'.$row->name.'</div>
                             <div class="text-xs text-gray-500">'.$row->address.'</div>';
                 })
-                ->addColumn('contact', function($row){
+                ->addColumn('contact', function ($row) {
                     return '<div class="text-sm text-gray-600">'.($row->contact_email ?? '').'</div>
                             <div class="text-xs text-gray-500">'.($row->contact_phone ?? '').'</div>';
                 })
-                ->editColumn('is_active', function($row){
-                    if($row->is_active) {
+                ->editColumn('is_active', function ($row) {
+                    if ($row->is_active) {
                         return '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>';
                     } else {
                         return '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Inactive</span>';
                     }
                 })
-                ->addColumn('action', function($row){
+                ->addColumn('action', function ($row) {
                     $editUrl = route('schools.edit', $row->id);
                     $deleteUrl = route('schools.destroy', $row->id);
                     $csrf = csrf_field();
                     $method = method_field('DELETE');
-                    
+
                     return '<div class="text-right text-sm font-medium">
-                            <a href="'.$editUrl.'" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
+                            <a href="'.$editUrl.'" class="p-1 px-2 text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
                             <form action="'.$deleteUrl.'" method="POST" class="inline-block" onsubmit="return confirm(\'Are you sure you want to delete this school?\');">
                                 '.$csrf.'
                                 '.$method.'
-                                <button type="submit" class="text-red-600 hover:text-red-900">Delete</button>
+                                <button type="submit" class="p-1 px-2 text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Delete">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
                             </form>
                             </div>';
                 })
