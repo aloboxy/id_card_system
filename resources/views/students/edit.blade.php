@@ -11,14 +11,16 @@
         <form action="{{ route('students.update', $student) }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-6">
             @csrf
             @method('PUT')
-            
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
+                <div class="col-span-2">
                     <label for="school_id" class="block text-sm font-medium text-gray-700">School</label>
-                    <select name="school_id" id="school_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2" required>
+                    <select name="school_id" id="school_id" 
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2" required>
                         <option value="">Select School</option>
                         @foreach($schools as $school)
-                            <option value="{{ $school->id }}" {{ old('school_id', $student->school_id) == $school->id ? 'selected' : '' }}>{{ $school->name }}</option>
+                            <option value="{{ $school->id }}" {{ old('school_id', $student->school_id) == $school->id ? 'selected' : '' }}>
+                                {{ $school->name }}
+                            </option>
                         @endforeach
                     </select>
                     @error('school_id')
@@ -26,34 +28,38 @@
                     @enderror
                 </div>
 
-                <div>
+                <div class="col-span-2">
                     <label for="student_id" class="block text-sm font-medium text-gray-700">Student ID</label>
-                    <input type="text" name="student_id" id="student_id" value="{{ old('student_id', $student->student_id) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2" required>
+                    <input type="text" name="student_id" id="student_id" value="{{ old('student_id', $student->student_id) }}"  
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2" required>
                     @error('student_id')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
 
-                <div class="col-span-full grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="col-span-2">
                     <div>
                         <label for="first_name" class="block text-sm font-medium text-gray-700">First Name</label>
-                        <input type="text" name="first_name" id="first_name" value="{{ old('first_name', $student->first_name) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2" required>
+                        <input type="text" name="first_name" id="first_name" value="{{ old('first_name', $student->first_name) }}" 
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2" required>
                         @error('first_name')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    <div>
+                    <div class="col-span-2">
                         <label for="middle_name" class="block text-sm font-medium text-gray-700">Middle Name</label>
-                        <input type="text" name="middle_name" id="middle_name" value="{{ old('middle_name', $student->middle_name) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2">
+                        <input type="text" name="middle_name" id="middle_name" value="{{ old('middle_name', $student->middle_name) }}" 
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2">
                         @error('middle_name')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    <div>
+                    <div class="col-span-2">
                         <label for="last_name" class="block text-sm font-medium text-gray-700">Last Name</label>
-                        <input type="text" name="last_name" id="last_name" value="{{ old('last_name', $student->last_name) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2" required>
+                        <input type="text" name="last_name" id="last_name" value="{{ old('last_name', $student->last_name) }}" 
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2" required>
                         @error('last_name')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
@@ -119,7 +125,7 @@
                     @enderror
                 </div>
 
-                <div>
+                <div class="col-span-2">
                     <label for="admission_number" class="block text-sm font-medium text-gray-700">Admission Number</label>
                     <input type="text" name="admission_number" id="admission_number" value="{{ old('admission_number', $student->admission_number) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2" required>
                     @error('admission_number')
@@ -127,7 +133,7 @@
                     @enderror
                 </div>
 
-                <div>
+                <div class="col-span-2">
                     <label for="class" class="block text-sm font-medium text-gray-700">Class</label>
                     <input type="text" name="class" id="class" value="{{ old('class', $student->class) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2" required>
                     @error('class')
@@ -135,7 +141,7 @@
                     @enderror
                 </div>
 
-                <div>
+                <div class="col-span-2">
                     <label for="date_of_birth" class="block text-sm font-medium text-gray-700">Date of Birth</label>
                     <input type="date" name="date_of_birth" id="date_of_birth" value="{{ old('date_of_birth', $student->date_of_birth->format('Y-m-d')) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2" required>
                     @error('date_of_birth')
@@ -143,7 +149,7 @@
                     @enderror
                 </div>
 
-                <div>
+                <div class="col-span-2">
                     <label for="gender" class="block text-sm font-medium text-gray-700">Gender</label>
                     <select name="gender" id="gender" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2" required>
                         <option value="male" {{ old('gender', $student->gender) == 'male' ? 'selected' : '' }}>Male</option>
@@ -155,7 +161,7 @@
                     @enderror
                 </div>
 
-                <div class="md:col-span-2">
+                <div class="col-span-2">
                     <label for="address" class="block text-sm font-medium text-gray-700">Address</label>
                     <input type="text" name="address" id="address" value="{{ old('address', $student->address) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2" required>
                     @error('address')
@@ -163,7 +169,7 @@
                     @enderror
                 </div>
 
-                <div>
+                <div class="col-span-2">
                     <label for="city" class="block text-sm font-medium text-gray-700">City</label>
                     <input type="text" name="city" id="city" value="{{ old('city', $student->city) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2" required>
                     @error('city')
@@ -171,8 +177,8 @@
                     @enderror
                 </div>
 
-                <div>
-                    <label for="state" class="block text-sm font-medium text-gray-700">State</label>
+                <div class="col-span-2">
+                    <label for="state" class="block text-sm font-medium text-gray-700">County</label>
                     <input type="text" name="state" id="state" value="{{ old('state', $student->state) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2" required>
                     @error('state')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>

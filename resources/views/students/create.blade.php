@@ -14,7 +14,8 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label for="school_id" class="block text-sm font-medium text-gray-700">School</label>
-                    <select name="school_id" id="school_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2" required>
+                    <select name="school_id" id="school_id" 
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2" required>
                         <option value="">Select School</option>
                         @foreach($schools as $school)
                             <option value="{{ $school->id }}" {{ old('school_id') == $school->id ? 'selected' : '' }}>{{ $school->name }}</option>
@@ -27,14 +28,15 @@
 
                 <div>
                     <label for="student_id" class="block text-sm font-medium text-gray-700">Student ID</label>
-                    <input type="text" name="student_id" id="student_id" value="{{ old('student_id') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2">
+                    <input type="text" name="student_id" id="student_id" value="{{ old('student_id') }}" 
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2">
                     <p class="mt-1 text-xs text-gray-500">Leave blank to auto-generate based on school code (e.g., CMFI-0001)</p>
                     @error('student_id')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
 
-                <div class="col-span-full grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="col-span-full grid grid-cols-3 gap-4">
                     <div>
                         <label for="first_name" class="block text-sm font-medium text-gray-700">First Name</label>
                         <input type="text" name="first_name" id="first_name" value="{{ old('first_name') }}" 
