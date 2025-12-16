@@ -21,6 +21,10 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('id-card-templates', App\Http\Controllers\IdCardTemplateController::class);
         Route::get('id-card-templates/{id_card_template}/generate', [App\Http\Controllers\IdCardTemplateController::class, 'generate'])->name('id-card-templates.generate');
         Route::post('id-card-templates/{id_card_template}/toggle-status', [App\Http\Controllers\IdCardTemplateController::class, 'toggleStatus'])->name('id-card-templates.toggle-status');
+        
+        // System Settings
+        Route::get('/settings', [App\Http\Controllers\SettingsController::class, 'edit'])->name('settings.edit');
+        Route::put('/settings', [App\Http\Controllers\SettingsController::class, 'update'])->name('settings.update');
     });
 
     // Profile Routes

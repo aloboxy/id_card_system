@@ -4,13 +4,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    {{-- @php
-        $appSetting = \App\Models\Setting::first();
-    @endphp
-    <title>{{ config('app.name', 'Election') }} - Login</title>
-    @if($appSetting && $appSetting->logo)
+    <title>@yield('title', 'Login') - {{ $systemName ?? config('app.name', 'Election') }}</title>
+    @if(isset($systemLogo) && $systemLogo)
+        <link rel="icon" type="image/png" href="{{ asset('storage/'.$systemLogo) }}">
+    @elseif(isset($appSetting) && $appSetting->logo)
         <link rel="icon" type="image/png" href="{{ asset('storage/images/'.$appSetting->logo) }}">
-    @endif --}}
+    @endif
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>

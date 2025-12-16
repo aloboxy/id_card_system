@@ -4,17 +4,14 @@
     <div class="login-container">
         <div class="login-card">
             <div class="logo-container">
-                {{-- <div class="logo-icon">
-                    @php
-                        $setting = \App\Models\Setting::first();
-                    @endphp
-                    @if($setting && $setting->logo)
-                        <img src="{{ asset('storage/images/'.$setting->logo) }}" alt="Logo">
+                <div class="logo-icon mb-4 flex justify-center">
+                    @if(isset($systemLogo) && $systemLogo)
+                        <img src="{{ asset('storage/' . $systemLogo) }}" alt="Logo" class="h-16 w-16 rounded-full object-cover">
                     @else
-                        <i class="fas fa-vote-yea"></i>
+                        <i class="fas fa-id-card text-4xl text-white"></i>
                     @endif
-                </div> --}}
-                <h1 class="welcome-text">Welcome back</h1>
+                </div>
+                <h1 class="welcome-text">{{ $systemName }}</h1>
                 <p class="subtitle-text">Please enter your details.</p>
             </div>
 

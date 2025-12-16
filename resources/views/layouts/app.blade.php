@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name', 'ID Card System') }}</title>
+    <title>@hasSection('header') @yield('header') - @endif {{ $systemName ?? config('app.name', 'ID Card System') }}</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -31,7 +31,12 @@
         <!-- Sidebar (Desktop + Mobile) -->
         <aside id="sidebar" class="w-64 bg-white border-r border-gray-200 fixed h-full z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
             <div class="h-16 flex items-center justify-between px-4 border-b border-gray-200">
-                <span class="text-xl font-bold text-indigo-600 tracking-wider">ID CARD GEN</span>
+                 <div class="flex items-center space-x-2">
+                    @if(isset($systemLogo) && $systemLogo)
+                        <img src="{{ asset('storage/' . $systemLogo) }}" alt="Logo" class="h-8 w-8 rounded-full object-cover">
+                    @endif
+                    <span class="text-xl font-bold text-indigo-600 tracking-wider truncate">{{ $systemName }}</span>
+                </div>
                 <button onclick="toggleMobileSidebar()" class="md:hidden text-gray-500 hover:text-gray-700">
                     <i class="fas fa-times text-xl"></i>
                 </button>
@@ -49,6 +54,10 @@
                 <a href="{{ route('schools.index') }}" class="flex items-center px-4 py-3 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors {{ request()->routeIs('schools.*') ? 'bg-indigo-50 text-indigo-600' : '' }}">
                     <i class="fas fa-school w-6"></i>
                     <span class="font-medium">Schools</span>
+                </a>
+                <a href="{{ route('settings.edit') }}" class="flex items-center px-4 py-3 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors {{ request()->routeIs('settings.*') ? 'bg-indigo-50 text-indigo-600' : '' }}">
+                    <i class="fas fa-cog w-6"></i>
+                    <span class="font-medium">Settings</span>
                 </a>
                 @endif
                 <a href="{{ route('students.index') }}" class="flex items-center px-4 py-3 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors {{ request()->routeIs('students.*') ? 'bg-indigo-50 text-indigo-600' : '' }}">
