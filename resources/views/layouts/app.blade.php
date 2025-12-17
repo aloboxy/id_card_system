@@ -55,7 +55,10 @@
                     <i class="fas fa-school w-6"></i>
                     <span class="font-medium">Schools</span>
                 </a>
-              
+                <a href="{{ route('staff.index') }}" class="flex items-center px-4 py-3 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors {{ request()->routeIs('staff.*') ? 'bg-indigo-50 text-indigo-600' : '' }}">
+                    <i class="fas fa-chalkboard-teacher w-6"></i>
+                    <span class="font-medium">Staff</span>
+                </a>
                 @endif
                 <a href="{{ route('students.index') }}" class="flex items-center px-4 py-3 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors {{ request()->routeIs('students.*') ? 'bg-indigo-50 text-indigo-600' : '' }}">
                     <i class="fas fa-user-graduate w-6"></i>

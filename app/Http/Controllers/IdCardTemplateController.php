@@ -94,6 +94,7 @@ class IdCardTemplateController extends Controller
             'design_data_back' => 'nullable|string',
             'school_id' => 'required|exists:schools,id',
             'active' => 'boolean',
+            'role' => 'required|in:student,staff',
         ]);
 
         $template = IdCardTemplate::create([
@@ -106,6 +107,7 @@ class IdCardTemplateController extends Controller
             'active' => $request->input('active', 0) == '1',
             'created_by' => Auth::id() ?? 1,
             'school_id' => $validated['school_id'],
+            'role' => $validated['role'],
         ]);
 
         return redirect()
@@ -152,7 +154,9 @@ class IdCardTemplateController extends Controller
             'height' => 'required|integer|min:100|max:1000',
             'design_data' => 'required|string',
             'design_data_back' => 'nullable|string',
+            'design_data_back' => 'nullable|string',
             'school_id' => 'required|exists:schools,id',
+            'role' => 'required|in:student,staff',
         ]);
 
         // Decode design_data
@@ -173,6 +177,7 @@ class IdCardTemplateController extends Controller
             'design_data_back' => $designDataBack,
             'school_id' => $validated['school_id'],
             'is_active' => $request->input('active', 0) == '1',
+            'role' => $validated['role'],
         ]);
 
         return redirect()

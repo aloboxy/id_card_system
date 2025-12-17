@@ -28,6 +28,7 @@ class IdCardTemplate extends Model
         'width',
         'height',
         'is_active',
+        'role',
         'created_by',
     ];
 
@@ -66,6 +67,14 @@ class IdCardTemplate extends Model
     public function students(): HasMany
     {
         return $this->hasMany(Student::class);
+    }
+
+    /**
+     * Get the staff associated with this template.
+     */
+    public function staff(): HasMany
+    {
+        return $this->hasMany(Staff::class);
     }
 
     /**

@@ -45,6 +45,15 @@
                                 </option>
                             @endforeach
                         </select>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Role</label>
+                        <select id="role-select" onchange="updateRole(this.value)" class="w-full px-2 py-1 text-sm border border-gray-300 rounded">
+                            <option value="student" {{ (isset($template) && $template->role == 'student') ? 'selected' : '' }}>Student</option>
+                            <option value="staff" {{ (isset($template) && $template->role == 'staff') ? 'selected' : '' }}>Staff</option>
+                        </select>
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
@@ -218,6 +227,7 @@
     @endif
     <input type="hidden" name="name" id="hidden-name" value="{{ $template->name ?? 'New Template' }}">
     <input type="hidden" name="school_id" id="hidden-school-id" value="{{ $template->school_id ?? '' }}">
+    <input type="hidden" name="role" id="hidden-role" value="{{ $template->role ?? 'student' }}">
     <input type="hidden" name="active" id="hidden-active" value="{{ isset($template) && $template->is_active ? '1' : '0' }}">
     <input type="hidden" name="width" id="hidden-width" value="{{ $template->width ?? 350 }}">
     <input type="hidden" name="height" id="hidden-height" value="{{ $template->height ?? 550 }}">
@@ -668,6 +678,10 @@
     
     function updateSchool(value) {
         document.getElementById('hidden-school-id').value = value;
+    }
+
+    function updateRole(value) {
+        document.getElementById('hidden-role').value = value;
     }
 
     function updateCanvasSize() {

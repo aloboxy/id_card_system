@@ -18,6 +18,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['role:admin'])->group(function () {
         Route::resource('users', App\Http\Controllers\UserController::class);
         Route::resource('schools', App\Http\Controllers\SchoolController::class);
+        Route::resource('staff', App\Http\Controllers\StaffController::class);
         Route::resource('id-card-templates', App\Http\Controllers\IdCardTemplateController::class);
         Route::get('id-card-templates/{id_card_template}/generate', [App\Http\Controllers\IdCardTemplateController::class, 'generate'])->name('id-card-templates.generate');
         Route::post('id-card-templates/{id_card_template}/toggle-status', [App\Http\Controllers\IdCardTemplateController::class, 'toggleStatus'])->name('id-card-templates.toggle-status');

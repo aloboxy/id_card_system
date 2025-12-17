@@ -102,7 +102,7 @@
                 </div>
                 <span class="text-sm font-medium text-green-700">Add School</span>
             </a>
-            <a href="#" class="flex flex-col items-center justify-center p-6 bg-orange-50 rounded-xl hover:bg-orange-100 transition-colors group">
+            <a href="{{ route('id-card-templates.index') }}" class="flex flex-col items-center justify-center p-6 bg-orange-50 rounded-xl hover:bg-orange-100 transition-colors group">
                 <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform">
                     <i class="fas fa-print text-orange-600 text-xl"></i>
                 </div>
