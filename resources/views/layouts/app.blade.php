@@ -55,6 +55,10 @@
                     <i class="fas fa-users w-6"></i>
                     <span class="font-medium">Users</span>
                 </a>
+                <a href="{{ route('roles.index') }}" class="flex items-center px-4 py-3 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors {{ request()->routeIs('roles.*') ? 'bg-indigo-50 text-indigo-600' : '' }}">
+                    <i class="fas fa-user-shield w-6"></i>
+                    <span class="font-medium">Roles</span>
+                </a>
                 <a href="{{ route('schools.index') }}" class="flex items-center px-4 py-3 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors {{ request()->routeIs('schools.*') ? 'bg-indigo-50 text-indigo-600' : '' }}">
                     <i class="fas fa-school w-6"></i>
                     <span class="font-medium">Schools</span>
@@ -123,6 +127,11 @@
                             <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 <i class="fas fa-user-circle mr-2 w-4"></i> Your Profile
                             </a>
+                            @if(Auth::user()->isAdmin())
+                            <a href="{{ route('roles.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-user-shield mr-2 w-4"></i> Roles & Permissions
+                            </a>
+                            @endif
                             <div class="border-t border-gray-100"></div>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf

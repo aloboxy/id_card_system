@@ -42,12 +42,13 @@
                 </div>
 
                 <div>
-                    <label for="role" class="block text-sm font-medium text-gray-700">Role</label>
-                    <select name="role" id="role" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2" required>
-                        <option value="user" {{ old('role') == 'user' ? 'selected' : '' }}>User</option>
-                        <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
+                    <label for="roles" class="block text-sm font-medium text-gray-700">Role</label>
+                    <select name="roles[]" id="roles" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2" multiple required>
+                        @foreach($roles as $role)
+                            <option value="{{ $role }}">{{ $role }}</option>
+                        @endforeach
                     </select>
-                    @error('role')
+                    @error('roles')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                 </div>

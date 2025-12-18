@@ -17,6 +17,7 @@ Route::middleware(['auth'])->group(function () {
     // Admin Only Routes
     Route::middleware(['role:admin'])->group(function () {
         Route::resource('users', App\Http\Controllers\UserController::class);
+        Route::resource('roles', App\Http\Controllers\RoleController::class);
         Route::resource('schools', App\Http\Controllers\SchoolController::class);
         Route::resource('staff', App\Http\Controllers\StaffController::class);
         Route::resource('id-card-templates', App\Http\Controllers\IdCardTemplateController::class);

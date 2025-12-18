@@ -57,7 +57,8 @@ class UserController extends Controller
      */
     public function create()
     {
-        return view('users.create');
+        $roles = \Spatie\Permission\Models\Role::pluck('name','name')->all();
+        return view('users.create', compact('roles'));
     }
 
     /**
@@ -69,15 +70,19 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'role' => ['required', 'in:admin,user'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'roles' => 'required'
         ]);
 
         User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
-            'role' => $validated['role'],
+            'password' => Hash::make($validated['password']),
+            'role' => 'user', // Default role column fallback
         ]);
+    
+        $user->assignRole($request->input('roles'));
 
         return redirect()->route('users.index')->with('success', 'User created successfully.');
     }
@@ -87,7 +92,10 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
-        return view('users.edit', compact('user'));
+        $roles = \Spatie\Permission\Models\Role::pluck('name','name')->all();
+        $userRole = $user->roles->pluck('name','name')->all();
+    
+        return view('users.edit', compact('user', 'roles', 'userRole'));
     }
 
     /**
@@ -98,7 +106,7 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'role' => ['required', 'in:admin,user'],
+            'roles' => 'required',
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ]);
 
@@ -113,6 +121,9 @@ class UserController extends Controller
         }
 
         $user->update($data);
+        DB::table('model_has_roles')->where('model_id',$user->id)->delete();
+    
+        $user->assignRole($request->input('roles'));
 
         return redirect()->route('users.index')->with('success', 'User updated successfully.');
     }
