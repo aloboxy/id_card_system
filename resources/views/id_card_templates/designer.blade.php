@@ -45,6 +45,7 @@
                                 </option>
                             @endforeach
                         </select>
+                        
                     </div>
                     <div>
                         <label class="block text-xs text-gray-500 mb-1">Role</label>
@@ -107,19 +108,50 @@
 
             <!-- Placeholders -->
             <div>
-                <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Placeholders</h4>
-                <div class="space-y-2">
-                    <button onclick="addPlaceholder('full_name', 'Student Name')" class="w-full flex items-center px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md text-sm transition-colors">
-                        <i class="fas fa-user w-5"></i> Name
-                    </button>
-                    <button onclick="addPlaceholder('student_id', 'Student ID')" class="w-full flex items-center px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md text-sm transition-colors">
-                        <i class="fas fa-id-badge w-5"></i> Student ID
-                    </button>
-                    <button type="button" onclick="addPlaceholder('class_with_section', 'Class & Section')" class="w-full flex items-center px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md text-sm transition-colors">
-                        <i class="fas fa-graduation-cap w-5"></i> Class
-                    </button>
+                 <!-- Student Placeholders -->
+                <div id="student-placeholders" class="{{ (isset($template) && $template->role == 'staff') ? 'hidden' : '' }}">
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Student Placeholders</h4>
+                    <div class="space-y-2">
+                        <button onclick="addPlaceholder('full_name', 'Student Name')" class="w-full flex items-center px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md text-sm transition-colors">
+                            <i class="fas fa-user w-5"></i> Name
+                        </button>
+                        <button onclick="addPlaceholder('student_id', 'Student ID')" class="w-full flex items-center px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md text-sm transition-colors">
+                            <i class="fas fa-id-badge w-5"></i> Student ID
+                        </button>
+                        <button type="button" onclick="addPlaceholder('class_with_section', 'Class & Section')" class="w-full flex items-center px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md text-sm transition-colors">
+                            <i class="fas fa-graduation-cap w-5"></i> Class
+                        </button>
+                    </div>
                 </div>
-                
+
+                <!-- Staff Placeholders -->
+                <div id="staff-placeholders" class="{{ (isset($template) && $template->role == 'staff') ? '' : 'hidden' }}">
+                     <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Staff Placeholders</h4>
+                     <div class="space-y-2">
+                        <button onclick="addPlaceholder('full_name', 'Staff Name')" class="w-full flex items-center px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md text-sm transition-colors">
+                            <i class="fas fa-user w-5"></i> Name
+                        </button>
+                        <button onclick="addPlaceholder('staff_id', 'Staff ID')" class="w-full flex items-center px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md text-sm transition-colors">
+                            <i class="fas fa-id-badge w-5"></i> Staff ID
+                        </button>
+                         <button onclick="addPlaceholder('designation', 'Designation')" class="w-full flex items-center px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md text-sm transition-colors">
+                            <i class="fas fa-briefcase w-5"></i> Designation
+                        </button>
+                         <button onclick="addPlaceholder('department', 'Department')" class="w-full flex items-center px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md text-sm transition-colors">
+                            <i class="fas fa-building w-5"></i> Department
+                        </button>
+                         <button onclick="addPlaceholder('joining_date', 'Joining Date')" class="w-full flex items-center px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md text-sm transition-colors">
+                            <i class="fas fa-calendar-check w-5"></i> Joining Date
+                        </button>
+                         <button onclick="addPlaceholder('phone', 'Phone')" class="w-full flex items-center px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md text-sm transition-colors">
+                            <i class="fas fa-phone w-5"></i> Phone
+                        </button>
+                         <button onclick="addPlaceholder('email', 'Email')" class="w-full flex items-center px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md text-sm transition-colors">
+                            <i class="fas fa-envelope w-5"></i> Email
+                        </button>
+                    </div>
+                </div>
+            
                 <!-- Photo with Shape Selector -->
                 <div class="mb-3 mt-4">
                     <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Photo Placeholder</h3>
@@ -680,6 +712,18 @@
 
     function updateRole(value) {
         document.getElementById('hidden-role').value = value;
+        
+        // Toggle placeholders
+        const studentPlaceholders = document.getElementById('student-placeholders');
+        const staffPlaceholders = document.getElementById('staff-placeholders');
+        
+        if (value === 'student') {
+            studentPlaceholders.classList.remove('hidden');
+            staffPlaceholders.classList.add('hidden');
+        } else {
+            studentPlaceholders.classList.add('hidden');
+            staffPlaceholders.classList.remove('hidden');
+        }
     }
 
     function updateCanvasSize() {
@@ -800,11 +844,12 @@
 
     function saveTemplate() {
         try {
-            console.log('Starting saveTemplate...');
+            // console.log('Starting saveTemplate...');
             
             // Sync values one last time
             const nameInput = document.getElementById('template-name');
             const schoolSelect = document.getElementById('school-select');
+            const roleSelect = document.getElementById('role-select');
             
             if (!nameInput.value) {
                 alert('Please enter a template name.');

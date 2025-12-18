@@ -219,13 +219,23 @@ class IdCardTemplateController extends Controller
      */
     public function generate(IdCardTemplate $idCardTemplate)
     {
-        // For MVP, just get all students from the same school (or all students for now)
+        // For MVP, just get all records from the same school (or all for now)
         // In a real app, we'd have a selection step
-        $students = \App\Models\Student::where('school_id', $idCardTemplate->school_id)->get();
-
-        // If no students found for the school, just get first 5 for demo purposes if dev
-        if ($students->isEmpty()) {
-            $students = \App\Models\Student::take(5)->get();
+        $records = collect();
+        
+        if ($idCardTemplate->role === 'staff') {
+            $records = \App\Models\Staff::where('school_id', $idCardTemplate->school_id)->get();
+            // If no staff found for the school, just get first 5 for demo purposes if dev
+            if ($records->isEmpty()) {
+                $records = \App\Models\Staff::take(5)->get();
+            }
+        } else {
+            // Default to student
+            $records = \App\Models\Student::where('school_id', $idCardTemplate->school_id)->get();
+            // If no students found for the school, just get first 5 for demo purposes if dev
+            if ($records->isEmpty()) {
+                $records = \App\Models\Student::take(5)->get();
+            }
         }
 
         // Fetch school dates once
@@ -235,7 +245,7 @@ class IdCardTemplateController extends Controller
 
         return view('id_card_templates.generate', [
             'template' => $idCardTemplate,
-            'students' => $students,
+            'records' => $records,
             'school_expiry_date' => $school_expiry_data,
             'school_issue_date' => $school_issue_data,
         ]);

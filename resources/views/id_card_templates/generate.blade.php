@@ -9,7 +9,7 @@
             <div>
                 <h2 class="text-lg font-semibold text-gray-800">Bulk Generation</h2>
                 <p class="text-sm text-gray-500">Template: {{ $template->name }}</p>
-                <p class="text-sm text-gray-500">Total Students: {{ $students->count() }}</p>
+                <p class="text-sm text-gray-500">Total Records: {{ $records->count() }}</p>
             </div>
             <div class="space-x-2">
                 <button onclick="startBulkGeneration()" id="btn-generate" class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:outline-none focus:border-green-900 focus:ring ring-green-300 disabled:opacity-25 transition ease-in-out duration-150">
@@ -32,9 +32,9 @@
     </div>
 
     <!-- Preview Area (Optional: Show just the first one) -->
-    @if($students->count() > 0)
+    @if($records->count() > 0)
     <div class="bg-white shadow rounded-lg p-6">
-        <h3 class="text-md font-semibold text-gray-700 mb-4">Preview (First Student)</h3>
+        <h3 class="text-md font-semibold text-gray-700 mb-4">Preview (First Record)</h3>
         <div class="flex flex-col md:flex-row gap-8 justify-center items-start">
             <div>
                 <span class="text-xs text-gray-500 block mb-1 text-center">Front</span>
@@ -62,18 +62,18 @@
 <script>
     const templateDataFront = @json($template->design_data);
     const templateDataBack = @json($template->design_data_back);
-    const students = @json($students);
+    const records = @json($records);
     const templateWidth = {{ $template->width }};
     const templateHeight = {{ $template->height }};
     const school_issue_date = "{{ $school_issue_date }}";
     const school_expiry_date = "{{ $school_expiry_date }}";
     
-    // Preview the first student
+    // Preview the first record
     document.addEventListener('DOMContentLoaded', function() {
-        if (students.length > 0) {
-            renderCard('preview-front', templateDataFront, students[0]);
+        if (records.length > 0) {
+            renderCard('preview-front', templateDataFront, records[0]);
             if (templateDataBack) {
-                renderCard('preview-back', templateDataBack, students[0]);
+                renderCard('preview-back', templateDataBack, records[0]);
             }
         }
     });
@@ -97,27 +97,29 @@
         const canvasBack = templateDataBack ? new fabric.StaticCanvas(null, { width: templateWidth, height: templateHeight }) : null;
 
         try {
-            for (let i = 0; i < students.length; i++) {
-                const student = students[i];
-                const percent = Math.round(((i + 1) / students.length) * 100);
+            for (let i = 0; i < records.length; i++) {
+                const record = records[i];
+                const percent = Math.round(((i + 1) / records.length) * 100);
                 
                 // Update UI
-                progressText.innerText = `Processing ${i + 1} of ${students.length}`;
+                progressText.innerText = `Processing ${i + 1} of ${records.length}`;
                 progressPercent.innerText = `${percent}%`;
                 progressBar.style.width = `${percent}%`;
-                statusDetail.innerText = `Generating ID for: ${student.first_name} ${student.last_name}`;
+                statusDetail.innerText = `Generating ID for: ${record.first_name} ${record.last_name}`;
 
                 // Generate Front
-                await renderToCanvas(canvasFront, templateDataFront, student, school_issue_date, school_expiry_date);
+                await renderToCanvas(canvasFront, templateDataFront, record, school_issue_date, school_expiry_date);
                 const frontBlob = await getCanvasBlob(canvasFront);
-                const studentName = (student.first_name + '_' + student.last_name).replace(/[^a-z0-9]/gi, '_').toLowerCase();
-                zip.file(`${studentName}_front.jpg`, frontBlob);
+                // Use student_id or staff_id or just name for filename
+                const id = record.student_id || record.staff_id || 'id';
+                const name = (record.first_name + '_' + record.last_name).replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                zip.file(`${name}_${id}_front.jpg`, frontBlob);
 
                 // Generate Back
                 if (canvasBack && templateDataBack) {
-                    await renderToCanvas(canvasBack, templateDataBack, student, school_issue_date, school_expiry_date);
+                    await renderToCanvas(canvasBack, templateDataBack, record, school_issue_date, school_expiry_date);
                     const backBlob = await getCanvasBlob(canvasBack);
-                    zip.file(`${studentName}_back.jpg`, backBlob);
+                    zip.file(`${name}_${id}_back.jpg`, backBlob);
                 }
 
                 // Small delay to allow UI update
@@ -141,16 +143,16 @@
         }
     }
 
-    function renderCard(canvasId, templateData, student) {
+    function renderCard(canvasId, templateData, record) {
         const canvas = new fabric.StaticCanvas(canvasId, {
             width: templateWidth,
             height: templateHeight,
             backgroundColor: '#ffffff'
         });
-        renderToCanvas(canvas, templateData, student, school_issue_date, school_expiry_date);
+        renderToCanvas(canvas, templateData, record, school_issue_date, school_expiry_date);
     }
 
-    function renderToCanvas(canvas, templateData, student, school_issue_date, school_expiry_date) {
+    function renderToCanvas(canvas, templateData, record, school_issue_date, school_expiry_date) {
         return new Promise((resolve, reject) => {
             canvas.clear();
             canvas.setBackgroundColor('#ffffff', canvas.renderAll.bind(canvas));
@@ -177,19 +179,30 @@
                             const field = obj.data.field;
                             let value = '';
                             
-                            console.log('Processing field:', field, 'for student:', student.student_id);
+                            // console.log('Processing field:', field, 'for record:', record.id);
                             
                             switch(field) {
-                                case 'full_name': value = student.first_name + ' ' + student.last_name; break;
-                                case 'student_id': value = student.student_id; break;
-                                case 'class': value = student.class || ''; break;
-                                case 'class_with_section': value = student.class + (student.section ? ' - ' + student.section : ''); break;
+                                // Common
+                                case 'full_name': value = record.first_name + ' ' + record.last_name; break;
+                                case 'phone': value = record.phone || ''; break;
+                                case 'email': value = record.email || ''; break;
                                 case 'issue_date': value = school_issue_date; break;
                                 case 'expiry_date': value = school_expiry_date; break;
+                                
+                                // Student Specific
+                                case 'student_id': value = record.student_id || ''; break;
+                                case 'class': value = record.class || ''; break;
+                                case 'class_with_section': value = (record.class || '') + (record.section ? ' - ' + record.section : ''); break;
+                                
+                                // Staff Specific
+                                case 'staff_id': value = record.staff_id || ''; break;
+                                case 'designation': value = record.designation || ''; break;
+                                case 'department': value = record.department || ''; break;
+                                case 'joining_date': value = record.joining_date ? new Date(record.joining_date).toLocaleDateString() : ''; break;
                             }
                             
                             if (value) {
-                                console.log('Replacing', obj.text, 'with', value);
+                                // console.log('Replacing', obj.text, 'with', value);
                                 // Replace the entire text with the value if it's a placeholder
                                 obj.set('text', value);
                             }
@@ -198,21 +211,37 @@
                             let text = obj.text;
                             const originalText = text;
                             
-                            text = text.replace(/\{\{Student Name\}\}/gi, student.first_name + ' ' + student.last_name);
-                            text = text.replace(/\{\{full_name\}\}/gi, student.first_name + ' ' + student.last_name);
-                            text = text.replace(/\{\{Student ID\}\}/gi, student.student_id);
-                            text = text.replace(/\{\{student_id\}\}/gi, student.student_id);
-                            text = text.replace(/\{\{Class & Section\}\}/gi, student.class + (student.section ? ' - ' + student.section : ''));
-                            text = text.replace(/\{\{class_with_section\}\}/gi, student.class + (student.section ? ' - ' + student.section : ''));
-                            text = text.replace(/\{\{Class\}\}/gi, student.class || '');
-                            text = text.replace(/\{\{class\}\}/gi, student.class || '');
-                            text = text.replace(/\{\{Issue Date\}\}/gi, school_issue_date);
+                            // Common Placeholders
+                            text = text.replace(/\{\{full_name\}\}/gi, record.first_name + ' ' + record.last_name);
+                            text = text.replace(/\{\{phone\}\}/gi, record.phone || '');
+                            text = text.replace(/\{\{email\}\}/gi, record.email || '');
                             text = text.replace(/\{\{issue_date\}\}/gi, school_issue_date);
-                            text = text.replace(/\{\{Expiry Date\}\}/gi, school_expiry_date);
                             text = text.replace(/\{\{expiry_date\}\}/gi, school_expiry_date);
                             
+                            // Student Placeholders
+                            text = text.replace(/\{\{student_id\}\}/gi, record.student_id || '');
+                            text = text.replace(/\{\{class_with_section\}\}/gi, (record.class || '') + (record.section ? ' - ' + record.section : ''));
+                            text = text.replace(/\{\{class\}\}/gi, record.class || '');
+                            
+                            // Staff Placeholders
+                            text = text.replace(/\{\{staff_id\}\}/gi, record.staff_id || '');
+                            text = text.replace(/\{\{designation\}\}/gi, record.designation || '');
+                            text = text.replace(/\{\{department\}\}/gi, record.department || '');
+                            text = text.replace(/\{\{joining_date\}\}/gi, record.joining_date || '');
+
+                            // Legacy/Friendly Names support
+                            text = text.replace(/\{\{Student Name\}\}/gi, record.first_name + ' ' + record.last_name);
+                            text = text.replace(/\{\{Staff Name\}\}/gi, record.first_name + ' ' + record.last_name);
+                            text = text.replace(/\{\{Student ID\}\}/gi, record.student_id || '');
+                            text = text.replace(/\{\{Staff ID\}\}/gi, record.staff_id || '');
+                            text = text.replace(/\{\{Class & Section\}\}/gi, (record.class || '') + (record.section ? ' - ' + record.section : ''));
+                            text = text.replace(/\{\{Class\}\}/gi, record.class || '');
+                            text = text.replace(/\{\{Issue Date\}\}/gi, school_issue_date);
+                            text = text.replace(/\{\{Expiry Date\}\}/gi, school_expiry_date);
+                            
+                            
                             if (text !== obj.text) {
-                                console.log('Text replacement:', originalText, '->', text);
+                                // console.log('Text replacement:', originalText, '->', text);
                                 obj.set('text', text);
                             }
                         }
@@ -246,12 +275,11 @@
                                     (obj.type === 'group' && obj.data && obj.data.field === 'photo');
                     
                     if (isPhoto) {
-                        console.log('Found photo placeholder for student:', student.student_id);
-                        console.log('Profile photo path:', student.photo_path || student.profile_photo_path);
-                        console.log('Photo shape:', obj.data?.shape);
+                        // console.log('Found photo placeholder');
+                        // console.log('Profile photo path:', record.photo_path || record.profile_photo_path);
                         
                         // Try both photo_path and profile_photo_path
-                        const photoPath = student.photo_path || student.profile_photo_path;
+                        const photoPath = record.photo_path || record.profile_photo_path;
                         
                         if (photoPath) {
                             pendingImages++;
@@ -378,12 +406,12 @@
                                      (obj.type === 'group' && obj.data && obj.data.field === 'qr_code');
                     
                     if (isQRCode) {
-                        console.log('Found QR code placeholder for student:', student.student_id);
-                        console.log('QR code URL:', student.qr_code_url);
+                        // console.log('Found QR code placeholder');
+                        // console.log('QR code URL:', record.qr_code_url);
                         
-                        if (student.qr_code_url) {
+                        if (record.qr_code_url) {
                             pendingImages++;
-                            fabric.Image.fromURL(student.qr_code_url, function(qrImg) {
+                            fabric.Image.fromURL(record.qr_code_url, function(qrImg) {
                                 if (!qrImg) {
                                     console.error('Failed to load QR code');
                                     pendingImages--;
@@ -416,9 +444,9 @@
 
                     // Fingerprint
                     if (obj.data && obj.data.field === 'fingerprint') {
-                        if (student.fingerprint_image_path) {
+                        if (record.fingerprint_image_path) {
                             pendingImages++;
-                            const fingerprintUrl = '/storage/' + student.fingerprint_image_path;
+                            const fingerprintUrl = '/storage/' + record.fingerprint_image_path;
                             fabric.Image.fromURL(fingerprintUrl, function(img) {
                                 if (!img) { pendingImages--; checkDone(); return; }
                                 img.set({
