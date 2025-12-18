@@ -206,8 +206,26 @@
                         <input type="color" id="prop-color" onchange="updateProperty('fill', this.value)" class="w-full h-8 rounded cursor-pointer">
                     </div>
                     <div>
+                        <label class="block text-xs text-gray-500 mb-1">Font Family</label>
+                        <select id="prop-fontfamily" onchange="updateProperty('fontFamily', this.value)" class="w-full px-2 py-1 text-sm border border-gray-300 rounded">
+                            <option value="Arial">Arial</option>
+                            <option value="Times New Roman">Times New Roman</option>
+                            <option value="Courier New">Courier New</option>
+                            <option value="Verdana">Verdana</option>
+                            <option value="Georgia">Georgia</option>
+                            <option value="Tahoma">Tahoma</option>
+                            <option value="Trebuchet MS">Trebuchet MS</option>
+                            <option value="Impact">Impact</option>
+                        </select>
+                    </div>
+                    <div>
                         <label class="block text-xs text-gray-500 mb-1">Font Size</label>
                         <input type="number" id="prop-fontsize" onchange="updateProperty('fontSize', parseInt(this.value))" class="w-full px-2 py-1 text-sm border border-gray-300 rounded">
+                    </div>
+                    <div class="flex space-x-1">
+                        <button onclick="toggleFontStyle('bold')" id="btn-bold" class="flex-1 px-2 py-1 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded border border-gray-200 font-bold" title="Bold">B</button>
+                        <button onclick="toggleFontStyle('italic')" id="btn-italic" class="flex-1 px-2 py-1 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded border border-gray-200 italic" title="Italic">I</button>
+                        <button onclick="toggleFontStyle('underline')" id="btn-underline" class="flex-1 px-2 py-1 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded border border-gray-200 underline" title="Underline">U</button>
                     </div>
                     <button onclick="deleteSelected()" class="w-full px-3 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-md text-sm transition-colors">
                         Delete Selected
@@ -639,7 +657,27 @@
         // Update inputs based on selection
         if (obj.fill && typeof obj.fill === 'string') document.getElementById('prop-color').value = obj.fill;
         if (obj.fontSize) document.getElementById('prop-fontsize').value = obj.fontSize;
+        if (obj.fontFamily) document.getElementById('prop-fontfamily').value = obj.fontFamily;
         
+        // Update font style buttons
+        if (obj.fontWeight === 'bold') {
+            document.getElementById('btn-bold').classList.add('bg-indigo-100', 'text-indigo-700', 'border-indigo-300');
+        } else {
+            document.getElementById('btn-bold').classList.remove('bg-indigo-100', 'text-indigo-700', 'border-indigo-300');
+        }
+        
+        if (obj.fontStyle === 'italic') {
+            document.getElementById('btn-italic').classList.add('bg-indigo-100', 'text-indigo-700', 'border-indigo-300');
+        } else {
+            document.getElementById('btn-italic').classList.remove('bg-indigo-100', 'text-indigo-700', 'border-indigo-300');
+        }
+        
+        if (obj.underline) {
+            document.getElementById('btn-underline').classList.add('bg-indigo-100', 'text-indigo-700', 'border-indigo-300');
+        } else {
+            document.getElementById('btn-underline').classList.remove('bg-indigo-100', 'text-indigo-700', 'border-indigo-300');
+        }
+
         // Update dimensions
         document.getElementById('prop-width').value = Math.round(obj.width * obj.scaleX);
         document.getElementById('prop-height').value = Math.round(obj.height * obj.scaleY);
@@ -654,6 +692,48 @@
             activeObject.set(prop, value);
             currentCanvas.requestRenderAll();
         }
+    }
+    
+    function toggleFontStyle(style) {
+        const activeObject = currentCanvas.getActiveObject();
+        if (!activeObject) return;
+
+        if (style === 'bold') {
+            const isBold = activeObject.fontWeight === 'bold';
+            activeObject.set('fontWeight', isBold ? 'normal' : 'bold');
+            
+            // Toggle button view
+            const btn = document.getElementById('btn-bold');
+            if (!isBold) {
+                 btn.classList.add('bg-indigo-100', 'text-indigo-700', 'border-indigo-300');
+            } else {
+                 btn.classList.remove('bg-indigo-100', 'text-indigo-700', 'border-indigo-300');
+            }
+        } else if (style === 'italic') {
+            const isItalic = activeObject.fontStyle === 'italic';
+            activeObject.set('fontStyle', isItalic ? 'normal' : 'italic');
+            
+             // Toggle button view
+            const btn = document.getElementById('btn-italic');
+            if (!isItalic) {
+                 btn.classList.add('bg-indigo-100', 'text-indigo-700', 'border-indigo-300');
+            } else {
+                 btn.classList.remove('bg-indigo-100', 'text-indigo-700', 'border-indigo-300');
+            }
+        } else if (style === 'underline') {
+            const isUnderline = activeObject.underline;
+            activeObject.set('underline', !isUnderline);
+            
+             // Toggle button view
+            const btn = document.getElementById('btn-underline');
+            if (!isUnderline) {
+                 btn.classList.add('bg-indigo-100', 'text-indigo-700', 'border-indigo-300');
+            } else {
+                 btn.classList.remove('bg-indigo-100', 'text-indigo-700', 'border-indigo-300');
+            }
+        }
+        
+        currentCanvas.requestRenderAll();
     }
     
     function updateDimension(prop, value) {
