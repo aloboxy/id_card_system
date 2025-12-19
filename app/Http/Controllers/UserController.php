@@ -70,14 +70,12 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
             'roles' => 'required'
         ]);
 
-        User::create([
+        $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
             'password' => Hash::make($validated['password']),
             'role' => 'user', // Default role column fallback
         ]);
@@ -113,7 +111,7 @@ class UserController extends Controller
         $data = [
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'role' => $validated['role'],
+            // 'role' => $validated['role'], // Removed legacy role update to avoid undefined index
         ];
 
         if (!empty($validated['password'])) {
