@@ -37,13 +37,13 @@ class RoleController extends Controller
                                 Show
                             </a>';
                     
-                    if(auth()->user()->can('role-edit')){
+                    if(auth()->user()->can('role-edit') || auth()->user()->isAdmin()){
                         $actionBtn .= '<a href="'.$editUrl.'" class="text-blue-600 hover:text-blue-900" title="Edit">
                                 Edit
                             </a>';
                     }
 
-                    if(auth()->user()->can('role-delete')){
+                    if(auth()->user()->can('role-delete') || auth()->user()->isAdmin()){
                         $actionBtn .= '<form action="'.$deleteUrl.'" method="POST" style="display:inline" onsubmit="return confirm(\'Are you sure you want to delete this role?\');">
                                 '.$csrf.'
                                 '.$method.'
@@ -75,7 +75,8 @@ class RoleController extends Controller
         ]);
     
         $role = Role::create(['name' => $request->input('name')]);
-        $role->syncPermissions($request->input('permission'));
+        $permissions = array_map('intval', $request->input('permission'));
+        $role->syncPermissions($permissions);
     
         return redirect()->route('roles.index')
                         ->with('success','Role created successfully');
@@ -113,7 +114,8 @@ class RoleController extends Controller
         $role->name = $request->input('name');
         $role->save();
     
-        $role->syncPermissions($request->input('permission'));
+        $permissions = array_map('intval', $request->input('permission'));
+        $role->syncPermissions($permissions);
     
         return redirect()->route('roles.index')
                         ->with('success','Role updated successfully');
