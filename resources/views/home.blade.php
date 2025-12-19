@@ -5,6 +5,7 @@
 @section('content')
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
     <!-- Schools Card -->
+    @if(auth()->user()->can('school-list') || auth()->user()->isAdmin())
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
         <div class="flex items-center justify-between mb-4">
             <h3 class="text-gray-500 text-sm font-medium">Total Schools</h3>
@@ -16,8 +17,10 @@
             <span class="text-3xl font-bold text-gray-800">{{ \App\Models\School::count() }}</span>
         </div>
     </div>
+    @endif
 
     <!-- Students Card -->
+    @if(auth()->user()->can('student-list') || auth()->user()->isAdmin())
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
         <div class="flex items-center justify-between mb-4">
             <h3 class="text-gray-500 text-sm font-medium">Total Students</h3>
@@ -29,8 +32,10 @@
             <span class="text-3xl font-bold text-gray-800">{{ \App\Models\Student::count() }}</span>
         </div>
     </div>
+    @endif
 
     <!-- Templates Card -->
+    @if(auth()->user()->can('template-list') || auth()->user()->isAdmin())
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
         <div class="flex items-center justify-between mb-4">
             <h3 class="text-gray-500 text-sm font-medium">Active Templates</h3>
@@ -42,10 +47,12 @@
             <span class="text-3xl font-bold text-gray-800">{{ \App\Models\IdCardTemplate::where('is_active', true)->count() }}</span>
         </div>
     </div>
+    @endif
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <!-- Recent Students -->
+    @if(auth()->user()->can('student-list') || auth()->user()->isAdmin())
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div class="p-6 border-b border-gray-100 flex justify-between items-center">
             <h3 class="text-lg font-semibold text-gray-800">Recent Students</h3>
@@ -79,35 +86,47 @@
             </table>
         </div>
     </div>
+    @endif
 
     <!-- Quick Actions -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <h3 class="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
         <div class="grid grid-cols-2 gap-4">
+            @if(auth()->user()->can('student-create') || auth()->user()->isAdmin())
             <a href="{{ route('students.create') }}" class="flex flex-col items-center justify-center p-6 bg-indigo-50 rounded-xl hover:bg-indigo-100 transition-colors group">
                 <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform">
                     <i class="fas fa-user-plus text-indigo-600 text-xl"></i>
                 </div>
                 <span class="text-sm font-medium text-indigo-700">Add Student</span>
             </a>
+            @endif
+
+            @if(auth()->user()->can('template-create') || auth()->user()->isAdmin())
             <a href="{{ route('id-card-templates.create') }}" class="flex flex-col items-center justify-center p-6 bg-purple-50 rounded-xl hover:bg-purple-100 transition-colors group">
                 <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform">
                     <i class="fas fa-paint-brush text-purple-600 text-xl"></i>
                 </div>
                 <span class="text-sm font-medium text-purple-700">Design Template</span>
             </a>
+            @endif
+
+            @if(auth()->user()->can('school-create') || auth()->user()->isAdmin())
             <a href="{{ route('schools.create') }}" class="flex flex-col items-center justify-center p-6 bg-green-50 rounded-xl hover:bg-green-100 transition-colors group">
                 <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform">
                     <i class="fas fa-plus-circle text-green-600 text-xl"></i>
                 </div>
                 <span class="text-sm font-medium text-green-700">Add School</span>
             </a>
+            @endif
+
+            @if(auth()->user()->can('template-list') || auth()->user()->isAdmin())
             <a href="{{ route('id-card-templates.index') }}" class="flex flex-col items-center justify-center p-6 bg-orange-50 rounded-xl hover:bg-orange-100 transition-colors group">
                 <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform">
                     <i class="fas fa-print text-orange-600 text-xl"></i>
                 </div>
                 <span class="text-sm font-medium text-orange-700">Generate IDs</span>
             </a>
+            @endif
         </div>
     </div>
 </div>
