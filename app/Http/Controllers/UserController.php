@@ -10,6 +10,13 @@ use Yajra\DataTables\Facades\DataTables;
 
 class UserController extends Controller
 {
+    function __construct()
+    {
+         $this->middleware('permission:user-list|user-create|user-edit|user-delete', ['only' => ['index','show']]);
+         $this->middleware('permission:user-create', ['only' => ['create','store']]);
+         $this->middleware('permission:user-edit', ['only' => ['edit','update']]);
+         $this->middleware('permission:user-delete', ['only' => ['destroy']]);
+    }
     /**
      * Display a listing of the resource.
      */
@@ -32,18 +39,25 @@ class UserController extends Controller
                     $csrf = csrf_field();
                     $method = method_field('DELETE');
 
-                    $actionBtn = '<div class="flex items-center justify-end space-x-2">
-                            <a href="'.$editUrl.'" class="p-1 px-2 text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors" title="Edit">
+                    $actionBtn = '<div class="flex items-center justify-end space-x-2">';
+                    
+                    if(auth()->user()->can('user-edit')){
+                        $actionBtn .= '<a href="'.$editUrl.'" class="p-1 px-2 text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors" title="Edit">
                                 <i class="fas fa-edit"></i>
-                            </a>
-                            <form action="'.$deleteUrl.'" method="POST" class="inline-block" onsubmit="return confirm(\'Are you sure you want to delete this user?\');">
+                            </a>';
+                    }
+
+                    if(auth()->user()->can('user-delete')){
+                        $actionBtn .= '<form action="'.$deleteUrl.'" method="POST" class="inline-block" onsubmit="return confirm(\'Are you sure you want to delete this user?\');">
                                 '.$csrf.'
                                 '.$method.'
                                 <button type="submit" class="p-1 px-2 text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Delete">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
-                            </form>
-                        </div>';
+                            </form>';
+                    }
+                    
+                    $actionBtn .= '</div>';
                     return $actionBtn;
                 })
                 ->rawColumns(['role', 'action'])

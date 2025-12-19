@@ -13,10 +13,10 @@ class RoleController extends Controller
     function __construct()
     {
          // We'll add middleware later once we have permissions seeded
-         // $this->middleware('permission:role-list|role-create|role-edit|role-delete', ['only' => ['index','store']]);
-         // $this->middleware('permission:role-create', ['only' => ['create','store']]);
-         // $this->middleware('permission:role-edit', ['only' => ['edit','update']]);
-         // $this->middleware('permission:role-delete', ['only' => ['destroy']]);
+         $this->middleware('permission:role-list|role-create|role-edit|role-delete', ['only' => ['index','store']]);
+         $this->middleware('permission:role-create', ['only' => ['create','store']]);
+         $this->middleware('permission:role-edit', ['only' => ['edit','update']]);
+         $this->middleware('permission:role-delete', ['only' => ['destroy']]);
     }
 
     public function index(Request $request)
@@ -37,13 +37,13 @@ class RoleController extends Controller
                                 Show
                             </a>';
                     
-                    if(auth()->user()->can('role-edit') || auth()->user()->isAdmin()){
+                    if(auth()->user()->can('role-edit')){
                         $actionBtn .= '<a href="'.$editUrl.'" class="text-blue-600 hover:text-blue-900" title="Edit">
                                 Edit
                             </a>';
                     }
 
-                    if(auth()->user()->can('role-delete') || auth()->user()->isAdmin()){
+                    if(auth()->user()->can('role-delete')){
                         $actionBtn .= '<form action="'.$deleteUrl.'" method="POST" style="display:inline" onsubmit="return confirm(\'Are you sure you want to delete this role?\');">
                                 '.$csrf.'
                                 '.$method.'

@@ -9,6 +9,13 @@ use Yajra\DataTables\Facades\DataTables;
 
 class StaffController extends Controller
 {
+    function __construct()
+    {
+         $this->middleware('permission:staff-list|staff-create|staff-edit|staff-delete', ['only' => ['index','show']]);
+         $this->middleware('permission:staff-create', ['only' => ['create','store']]);
+         $this->middleware('permission:staff-edit', ['only' => ['edit','update']]);
+         $this->middleware('permission:staff-delete', ['only' => ['destroy']]);
+    }
     /**
      * Display a listing of the resource.
      */
@@ -51,21 +58,32 @@ class StaffController extends Controller
                     $csrf = csrf_field();
                     $method = method_field('DELETE');
 
-                    return '<div class="flex items-center justify-end space-x-2">
-                            <a href="'.$viewUrl.'" class="p-1 px-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="View">
+                    $btns = '<div class="flex items-center justify-end space-x-2">';
+                    
+                    if(auth()->user()->can('staff-list')){
+                         $btns .= '<a href="'.$viewUrl.'" class="p-1 px-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="View">
                                 <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="'.$editUrl.'" class="p-1 px-2 text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors" title="Edit">
+                            </a>';
+                    }
+
+                    if(auth()->user()->can('staff-edit')){
+                         $btns .= '<a href="'.$editUrl.'" class="p-1 px-2 text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors" title="Edit">
                                 <i class="fas fa-edit"></i>
-                            </a>
-                            <form action="'.$deleteUrl.'" method="POST" class="inline-block" onsubmit="return confirm(\'Are you sure you want to delete this staff member?\');">
+                            </a>';
+                    }
+
+                    if(auth()->user()->can('staff-delete')){
+                         $btns .= '<form action="'.$deleteUrl.'" method="POST" class="inline-block" onsubmit="return confirm(\'Are you sure you want to delete this staff member?\');">
                                 '.$csrf.'
                                 '.$method.'
                                 <button type="submit" class="p-1 px-2 text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Delete">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
-                            </form>
-                            </div>';
+                            </form>';
+                    }
+                    
+                    $btns .= '</div>';
+                    return $btns;
                 })
                 ->rawColumns(['full_name', 'school_name', 'designation', 'is_active', 'action'])
                 ->make(true);

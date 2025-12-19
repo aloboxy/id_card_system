@@ -11,6 +11,13 @@ use Yajra\DataTables\Facades\DataTables;
 
 class IdCardTemplateController extends Controller
 {
+    function __construct()
+    {
+         $this->middleware('permission:template-list|template-create|template-edit|template-delete', ['only' => ['index','show']]);
+         $this->middleware('permission:template-create', ['only' => ['create','store']]);
+         $this->middleware('permission:template-edit', ['only' => ['edit','update']]);
+         $this->middleware('permission:template-delete', ['only' => ['destroy']]);
+    }
     /**
      * Display a listing of the resource.
      */
@@ -44,18 +51,26 @@ class IdCardTemplateController extends Controller
                     $csrf = csrf_field();
                     $method = method_field('DELETE');
 
-                    return '<div class="text-right text-sm font-medium">
-                              <a href="'.$editUrl.'" class="p-1 px-2 text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors" title="Edit">
+                    $btns = '<div class="text-right text-sm font-medium">';
+
+                    if(auth()->user()->can('template-edit')){
+                         $btns .= '<a href="'.$editUrl.'" class="p-1 px-2 text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors" title="Edit">
                                 <i class="fas fa-edit"></i>
-                            </a>
-                            <form action="'.$deleteUrl.'" method="POST" class="inline-block" onsubmit="return confirm(\'Are you sure you want to delete this template?\');">
+                            </a>';
+                    }
+
+                    if(auth()->user()->can('template-delete')){
+                         $btns .= '<form action="'.$deleteUrl.'" method="POST" class="inline-block" onsubmit="return confirm(\'Are you sure you want to delete this template?\');">
                                 '.$csrf.'
                                 '.$method.'
                                 <button type="submit" class="p-1 px-2 text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Delete">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
-                            </form>
-                            </div>';
+                            </form>';
+                    }
+                    
+                    $btns .= '</div>';
+                    return $btns;
                 })
                 ->rawColumns(['name', 'school_name', 'dimensions', 'is_active', 'action'])
                 ->make(true);
