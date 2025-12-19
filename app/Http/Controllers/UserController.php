@@ -4,19 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Yajra\DataTables\Facades\DataTables;
 
 class UserController extends Controller
 {
-    function __construct()
+    public function __construct()
     {
-         $this->middleware('permission:user-list|user-create|user-edit|user-delete', ['only' => ['index','show']]);
-         $this->middleware('permission:user-create', ['only' => ['create','store']]);
-         $this->middleware('permission:user-edit', ['only' => ['edit','update']]);
-         $this->middleware('permission:user-delete', ['only' => ['destroy']]);
+        $this->middleware('permission:user-list|user-create|user-edit|user-delete', ['only' => ['index', 'show']]);
+        $this->middleware('permission:user-create', ['only' => ['create', 'store']]);
+        $this->middleware('permission:user-edit', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:user-delete', ['only' => ['destroy']]);
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -24,30 +26,31 @@ class UserController extends Controller
     {
         if ($request->ajax()) {
             $data = User::select('*');
+
             return DataTables::of($data)
                 ->addIndexColumn()
-                ->editColumn('role', function($row){
-                    if($row->role == 'admin'){
+                ->editColumn('role', function ($row) {
+                    if ($row->role == 'admin') {
                         return '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">Admin</span>';
                     } else {
                         return '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">User</span>';
                     }
                 })
-                ->addColumn('action', function($row){
+                ->addColumn('action', function ($row) {
                     $editUrl = route('users.edit', $row->id);
                     $deleteUrl = route('users.destroy', $row->id);
                     $csrf = csrf_field();
                     $method = method_field('DELETE');
 
                     $actionBtn = '<div class="flex items-center justify-end space-x-2">';
-                    
-                    if(auth()->user()->can('user-edit')){
+
+                    if (auth()->user()->can('user-edit')) {
                         $actionBtn .= '<a href="'.$editUrl.'" class="p-1 px-2 text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </a>';
                     }
 
-                    if(auth()->user()->can('user-delete')){
+                    if (auth()->user()->can('user-delete')) {
                         $actionBtn .= '<form action="'.$deleteUrl.'" method="POST" class="inline-block" onsubmit="return confirm(\'Are you sure you want to delete this user?\');">
                                 '.$csrf.'
                                 '.$method.'
@@ -56,13 +59,15 @@ class UserController extends Controller
                                 </button>
                             </form>';
                     }
-                    
+
                     $actionBtn .= '</div>';
+
                     return $actionBtn;
                 })
                 ->rawColumns(['role', 'action'])
                 ->make(true);
         }
+
         return view('users.index');
     }
 
@@ -71,7 +76,8 @@ class UserController extends Controller
      */
     public function create()
     {
-        $roles = \Spatie\Permission\Models\Role::pluck('name','name')->all();
+        $roles = \Spatie\Permission\Models\Role::pluck('name', 'name')->all();
+
         return view('users.create', compact('roles'));
     }
 
@@ -84,7 +90,7 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'roles' => 'required'
+            'roles' => 'required',
         ]);
 
         $user = User::create([
@@ -93,7 +99,7 @@ class UserController extends Controller
             'password' => Hash::make($validated['password']),
             'role' => 'user', // Default role column fallback
         ]);
-    
+
         $user->assignRole($request->input('roles'));
 
         return redirect()->route('users.index')->with('success', 'User created successfully.');
@@ -104,9 +110,9 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
-        $roles = \Spatie\Permission\Models\Role::pluck('name','name')->all();
-        $userRole = $user->roles->pluck('name','name')->all();
-    
+        $roles = \Spatie\Permission\Models\Role::pluck('name', 'name')->all();
+        $userRole = $user->roles->pluck('name', 'name')->all();
+
         return view('users.edit', compact('user', 'roles', 'userRole'));
     }
 
@@ -128,13 +134,13 @@ class UserController extends Controller
             // 'role' => $validated['role'], // Removed legacy role update to avoid undefined index
         ];
 
-        if (!empty($validated['password'])) {
+        if (! empty($validated['password'])) {
             $data['password'] = Hash::make($validated['password']);
         }
 
         $user->update($data);
-        DB::table('model_has_roles')->where('model_id',$user->id)->delete();
-    
+        DB::table('model_has_roles')->where('model_id', $user->id)->delete();
+
         $user->assignRole($request->input('roles'));
 
         return redirect()->route('users.index')->with('success', 'User updated successfully.');
