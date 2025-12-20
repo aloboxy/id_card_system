@@ -193,6 +193,7 @@
                                 case 'student_id': value = record.student_id || ''; break;
                                 case 'class': value = record.class || ''; break;
                                 case 'class_with_section': value = (record.class || '') + (record.section ? ' - ' + record.section : ''); break;
+                                case 'dob': value = record.date_of_birth ? new Date(record.date_of_birth).toLocaleDateString() : ''; break;
                                 
                                 // Staff Specific
                                 case 'staff_id': value = record.staff_id || ''; break;
@@ -217,6 +218,7 @@
                             text = text.replace(/\{\{email\}\}/gi, record.email || '');
                             text = text.replace(/\{\{issue_date\}\}/gi, school_issue_date);
                             text = text.replace(/\{\{expiry_date\}\}/gi, school_expiry_date);
+                            text = text.replace(/\{\{dob\}\}/gi, record.date_of_birth ? new Date(record.date_of_birth).toLocaleDateString() : '');
                             
                             // Student Placeholders
                             text = text.replace(/\{\{student_id\}\}/gi, record.student_id || '');

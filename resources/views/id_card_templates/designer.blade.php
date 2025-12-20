@@ -2,6 +2,37 @@
 
 @section('header', 'Design Template')
 
+@push('styles')
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Cinzel&family=EB+Garamond&family=Grand+Hotel&family=Inter&family=Montserrat&family=Open+Sans&family=Pacifico&family=Playfair+Display&family=Poppins&family=Roboto&family=Work+Sans&display=swap" rel="stylesheet">
+<style>
+    /* Font Families */
+    .font-helvetica { font-family: 'Helvetica', 'Arial', sans-serif; }
+    .font-futura { font-family: 'Futura', 'Trebuchet MS', sans-serif; }
+    .font-roboto { font-family: 'Roboto', sans-serif; }
+    .font-inter { font-family: 'Inter', sans-serif; }
+    .font-poppins { font-family: 'Poppins', sans-serif; }
+    .font-montserrat { font-family: 'Montserrat', sans-serif; }
+    .font-opensans { font-family: 'Open Sans', sans-serif; }
+    .font-avenir { font-family: 'Avenir', 'Nunito', sans-serif; }
+    .font-worksans { font-family: 'Work Sans', sans-serif; }
+    .font-din { font-family: 'DIN', 'Oswald', sans-serif; }
+    
+    .font-garamond { font-family: 'Garamond', serif; }
+    .font-bodoni { font-family: 'Bodoni MT', 'Libre Bodoni', serif; }
+    .font-didot { font-family: 'Didot', 'Didot LT STD', serif; }
+    .font-baskerville { font-family: 'Baskerville', 'Baskerville Old Face', serif; }
+    .font-ebgaramond { font-family: 'EB Garamond', serif; }
+    
+    .font-playfair { font-family: 'Playfair Display', serif; }
+    .font-pacifico { font-family: 'Pacifico', cursive; }
+    .font-cinzel { font-family: 'Cinzel', serif; }
+    .font-alfaslab { font-family: 'Alfa Slab One', cursive; }
+    .font-grandhotel { font-family: 'Grand Hotel', cursive; }
+</style>
+@endpush
+
 @section('content')
 <div class="flex flex-col h-[calc(100vh-8rem)]">
     @if ($errors->any())
@@ -121,6 +152,9 @@
                         <button type="button" onclick="addPlaceholder('class_with_section', 'Class & Section')" class="w-full flex items-center px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md text-sm transition-colors">
                             <i class="fas fa-graduation-cap w-5"></i> Class
                         </button>
+                        <button onclick="addPlaceholder('dob', 'Date of Birth')" class="w-full flex items-center px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md text-sm transition-colors">
+                            <i class="fas fa-birthday-cake w-5"></i> Date of Birth
+                        </button>
                     </div>
                 </div>
 
@@ -133,6 +167,9 @@
                         </button>
                         <button onclick="addPlaceholder('staff_id', 'Staff ID')" class="w-full flex items-center px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md text-sm transition-colors">
                             <i class="fas fa-id-badge w-5"></i> Staff ID
+                        </button>
+                        <button onclick="addPlaceholder('dob', 'Date of Birth')" class="w-full flex items-center px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md text-sm transition-colors">
+                            <i class="fas fa-birthday-cake w-5"></i> Date of Birth
                         </button>
                          <button onclick="addPlaceholder('designation', 'Designation')" class="w-full flex items-center px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md text-sm transition-colors">
                             <i class="fas fa-briefcase w-5"></i> Designation
@@ -208,14 +245,41 @@
                     <div>
                         <label class="block text-xs text-gray-500 mb-1">Font Family</label>
                         <select id="prop-fontfamily" onchange="updateProperty('fontFamily', this.value)" class="w-full px-2 py-1 text-sm border border-gray-300 rounded">
-                            <option value="Arial">Arial</option>
-                            <option value="Times New Roman">Times New Roman</option>
-                            <option value="Courier New">Courier New</option>
-                            <option value="Verdana">Verdana</option>
-                            <option value="Georgia">Georgia</option>
-                            <option value="Tahoma">Tahoma</option>
-                            <option value="Trebuchet MS">Trebuchet MS</option>
-                            <option value="Impact">Impact</option>
+                            <optgroup label="Modern / Graphic">
+                                <option value="Helvetica" style="font-family: 'Helvetica', 'Arial', sans-serif;">Helvetica</option>
+                                <option value="Futura" style="font-family: 'Futura', 'Trebuchet MS', sans-serif;">Futura</option>
+                                <option value="Roboto" style="font-family: 'Roboto', sans-serif;">Roboto</option>
+                                <option value="Inter" style="font-family: 'Inter', sans-serif;">Inter</option>
+                                <option value="Poppins" style="font-family: 'Poppins', sans-serif;">Poppins</option>
+                                <option value="Montserrat" style="font-family: 'Montserrat', sans-serif;">Montserrat</option>
+                                <option value="Open Sans" style="font-family: 'Open Sans', sans-serif;">Open Sans</option>
+                                <option value="Avenir" style="font-family: 'Avenir', 'Nunito', sans-serif;">Avenir</option>
+                                <option value="Work Sans" style="font-family: 'Work Sans', sans-serif;">Work Sans</option>
+                                <option value="DIN" style="font-family: 'DIN', 'Oswald', sans-serif;">DIN</option>
+                            </optgroup>
+                            
+                            <optgroup label="Traditional / Serif">
+                                <option value="Garamond" style="font-family: 'Garamond', serif;">Garamond</option>
+                                <option value="Bodoni MT" style="font-family: 'Bodoni MT', serif;">Bodoni</option>
+                                <option value="Didot" style="font-family: 'Didot', serif;">Didot</option>
+                                <option value="Baskerville" style="font-family: 'Baskerville', serif;">Baskerville</option>
+                                <option value="EB Garamond" style="font-family: 'EB Garamond', serif;">EB Garamond</option>
+                            </optgroup>
+                            
+                            <optgroup label="Styling / Display">
+                                <option value="Playfair Display" style="font-family: 'Playfair Display', serif;">Playfair Display</option>
+                                <option value="Pacifico" style="font-family: 'Pacifico', cursive;">Pacifico</option>
+                                <option value="Cinzel" style="font-family: 'Cinzel', serif;">Cinzel</option>
+                                <option value="Alfa Slab One" style="font-family: 'Alfa Slab One', cursive;">Alfa Slab One</option>
+                                <option value="Grand Hotel" style="font-family: 'Grand Hotel', cursive;">Grand Hotel</option>
+                            </optgroup>
+
+                            <optgroup label="Other">
+                                <option value="Arial" style="font-family: Arial;">Arial</option>
+                                <option value="Times New Roman" style="font-family: 'Times New Roman';">Times New Roman</option>
+                                <option value="Courier New" style="font-family: 'Courier New';">Courier New</option>
+                                <option value="Verdana" style="font-family: Verdana;">Verdana</option>
+                            </optgroup>
                         </select>
                     </div>
                     <div>
@@ -244,6 +308,14 @@
                 <button onclick="setSide('back')" id="btn-back" class="px-4 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100">Back Side</button>
             </div>
             <div class="flex items-center space-x-4">
+                <div class="flex space-x-1 mr-4 border-r border-gray-200 pr-4">
+                    <button onclick="undo()" id="btn-undo" class="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors" title="Undo (Ctrl+Z)">
+                        <i class="fas fa-undo"></i>
+                    </button>
+                    <button onclick="redo()" id="btn-redo" class="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors" title="Redo (Ctrl+Y)">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                </div>
                 <div class="flex items-center space-x-2">
                     <label class="text-sm text-gray-600">Zoom:</label>
                     <input type="range" id="zoom-slider" min="50" max="200" value="100" oninput="setZoom(this.value)" class="w-32">
@@ -289,6 +361,12 @@
     let canvasFront, canvasBack;
     let currentSide = 'front';
     let currentCanvas;
+    
+    // Undo/Redo State
+    let history = [];
+    let historyStep = -1;
+    let isUndoing = false;
+    const MAX_HISTORY = 50;
 
     document.addEventListener('DOMContentLoaded', function() {
         const width = {{ $template->width ?? 350 }};
@@ -323,6 +401,21 @@
         if (savedDataBack) {
             canvasBack.loadFromJSON(savedDataBack, canvasBack.renderAll.bind(canvasBack));
         }
+        
+        // Save initial state
+        saveHistory();
+
+        // Event listeners for history
+        const historyEvents = ['object:added', 'object:removed', 'object:modified', 'object:skewing', 'object:scaling', 'object:rotating', 'object:moving'];
+        
+        historyEvents.forEach(event => {
+            canvasFront.on(event, () => {
+                if (!isUndoing) saveHistory();
+            });
+            canvasBack.on(event, () => {
+                if (!isUndoing) saveHistory();
+            });
+        });
 
         // Event listeners for selection
         canvasFront.on('selection:created', onSelection);
@@ -337,7 +430,19 @@
 
         // Keyboard support
         document.addEventListener('keydown', function(e) {
-            // Don't trigger if user is typing in an input
+            // Check for Undo/Redo shortcuts first
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+                e.preventDefault();
+                undo();
+                return;
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
+                e.preventDefault();
+                redo();
+                return;
+            }
+            
+            // Don't trigger other shortcuts if user is typing in an input
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
             if (!currentCanvas) return;
@@ -353,21 +458,25 @@
                     case 'ArrowLeft':
                         activeObject.set('left', activeObject.left - step);
                         currentCanvas.renderAll();
+                        if(!isUndoing) saveHistory(); // Save on move
                         e.preventDefault();
                         break;
                     case 'ArrowRight':
                         activeObject.set('left', activeObject.left + step);
                         currentCanvas.renderAll();
+                        if(!isUndoing) saveHistory();
                         e.preventDefault();
                         break;
                     case 'ArrowUp':
                         activeObject.set('top', activeObject.top - step);
                         currentCanvas.renderAll();
+                        if(!isUndoing) saveHistory();
                         e.preventDefault();
                         break;
                     case 'ArrowDown':
                         activeObject.set('top', activeObject.top + step);
                         currentCanvas.renderAll();
+                        if(!isUndoing) saveHistory();
                         e.preventDefault();
                         break;
                     case 'Delete':
@@ -379,6 +488,100 @@
             }
         });
     });
+    
+    // History Functions
+    function saveHistory() {
+        if (isUndoing) return; // Don't save if we are currently undoing/redoing
+        
+        // Remove redo stack if we are in the middle of history
+        if (historyStep < history.length - 1) {
+            history = history.slice(0, historyStep + 1);
+        }
+        
+        // Limit history size
+        if (history.length > MAX_HISTORY) {
+            history.shift();
+            historyStep--;
+        }
+
+        const state = {
+            front: JSON.stringify(canvasFront.toJSON()),
+            back: JSON.stringify(canvasBack.toJSON()),
+            side: currentSide
+        };
+        
+        history.push(state);
+        historyStep++;
+        updateUndoRedoButtons();
+    }
+    
+    function undo() {
+        if (historyStep > 0) {
+            isUndoing = true;
+            historyStep--;
+            const state = history[historyStep];
+            loadState(state);
+            updateUndoRedoButtons();
+            isUndoing = false;
+        }
+    }
+    
+    function redo() {
+        if (historyStep < history.length - 1) {
+            isUndoing = true;
+            historyStep++;
+            const state = history[historyStep];
+            loadState(state);
+            updateUndoRedoButtons();
+            isUndoing = false;
+        }
+    }
+    
+    function loadState(state) {
+        // We need to handle side switching if the state was on a different side? 
+        // Actually, we save both canvases every time, so we just restore both.
+        // But we might want to switch to the side the user was on? 
+        // Let's just restore data for now.
+        
+        canvasFront.loadFromJSON(state.front, () => {
+             canvasFront.renderAll();
+        });
+        
+        canvasBack.loadFromJSON(state.back, () => {
+             canvasBack.renderAll();
+        });
+        
+        // Optionally switch side if useful, but maybe confusing if user is looking at back and undo changes something on front.
+        // For now let's keep current side unless we want to strictly follow state "side".
+         if (state.side !== currentSide) {
+             setSide(state.side);
+         }
+    }
+    
+    function updateUndoRedoButtons() {
+        const btnUndo = document.getElementById('btn-undo');
+        const btnRedo = document.getElementById('btn-redo');
+        
+        if (historyStep > 0) {
+            btnUndo.classList.remove('text-gray-300', 'cursor-not-allowed');
+            btnUndo.classList.add('text-gray-500', 'hover:bg-indigo-50', 'hover:text-indigo-600');
+            btnUndo.disabled = false;
+        } else {
+            btnUndo.classList.add('text-gray-300', 'cursor-not-allowed');
+            btnUndo.classList.remove('text-gray-500', 'hover:bg-indigo-50', 'hover:text-indigo-600');
+            btnUndo.disabled = true;
+        }
+        
+        if (historyStep < history.length - 1) {
+            btnRedo.classList.remove('text-gray-300', 'cursor-not-allowed');
+            btnRedo.classList.add('text-gray-500', 'hover:bg-indigo-50', 'hover:text-indigo-600');
+            btnRedo.disabled = false;
+        } else {
+            btnRedo.classList.add('text-gray-300', 'cursor-not-allowed');
+            btnRedo.classList.remove('text-gray-500', 'hover:bg-indigo-50', 'hover:text-indigo-600');
+            btnRedo.disabled = true;
+        }
+    }
 
     function setSide(side) {
         currentSide = side;
