@@ -291,6 +291,12 @@
                         <button onclick="toggleFontStyle('italic')" id="btn-italic" class="flex-1 px-2 py-1 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded border border-gray-200 italic" title="Italic">I</button>
                         <button onclick="toggleFontStyle('underline')" id="btn-underline" class="flex-1 px-2 py-1 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded border border-gray-200 underline" title="Underline">U</button>
                     </div>
+                    <div class="flex space-x-1">
+                        <button onclick="toggleTextAlign('left')" id="btn-align-left" class="flex-1 px-2 py-1 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded border border-gray-200" title="Align Left"><i class="fas fa-align-left"></i></button>
+                        <button onclick="toggleTextAlign('center')" id="btn-align-center" class="flex-1 px-2 py-1 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded border border-gray-200" title="Align Center"><i class="fas fa-align-center"></i></button>
+                        <button onclick="toggleTextAlign('right')" id="btn-align-right" class="flex-1 px-2 py-1 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded border border-gray-200" title="Align Right"><i class="fas fa-align-right"></i></button>
+                        <button onclick="toggleTextAlign('justify')" id="btn-align-justify" class="flex-1 px-2 py-1 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded border border-gray-200" title="Justify"><i class="fas fa-align-justify"></i></button>
+                    </div>
                     <button onclick="deleteSelected()" class="w-full px-3 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-md text-sm transition-colors">
                         Delete Selected
                     </button>
@@ -880,6 +886,17 @@
         } else {
             document.getElementById('btn-underline').classList.remove('bg-indigo-100', 'text-indigo-700', 'border-indigo-300');
         }
+        
+        // Update alignment buttons
+        const align = obj.textAlign || 'left';
+        ['left', 'center', 'right', 'justify'].forEach(a => {
+            const btn = document.getElementById('btn-align-' + a);
+            if (a === align) {
+                btn.classList.add('bg-indigo-100', 'text-indigo-700', 'border-indigo-300');
+            } else {
+                btn.classList.remove('bg-indigo-100', 'text-indigo-700', 'border-indigo-300');
+            }
+        });
 
         // Update dimensions
         document.getElementById('prop-width').value = Math.round(obj.width * obj.scaleX);
@@ -894,6 +911,49 @@
         if (activeObject) {
             activeObject.set(prop, value);
             currentCanvas.requestRenderAll();
+            if(!isUndoing) saveHistory();
+        }
+    }
+    
+    function toggleTextAlign(align) {
+        const activeObject = currentCanvas.getActiveObject();
+        if (activeObject) {
+            // Determine new originX based on alignment
+            let newOriginX = 'left';
+            if (align === 'center') {
+                newOriginX = 'center';
+            } else if (align === 'right') {
+                newOriginX = 'right';
+            }
+            
+            // Get current point for the NEW origin
+            // This ensures the object stays visually in place
+            const p = activeObject.getPointByOrigin(newOriginX, activeObject.originY);
+            
+            activeObject.set({
+                textAlign: align,
+                originX: newOriginX,
+                left: p.x,
+                top: p.y // technically originY didn't change so Top should be fine, but setPositionByOrigin sets both
+            });
+            
+            // We can also use setPositionByOrigin but we need to manually set the props after
+            // activeObject.setPositionByOrigin(p, newOriginX, activeObject.originY); 
+            // activeObject.set('textAlign', align);
+
+            currentCanvas.requestRenderAll();
+            
+            // Update buttons
+            ['left', 'center', 'right', 'justify'].forEach(a => {
+                const btn = document.getElementById('btn-align-' + a);
+                if (a === align) {
+                    btn.classList.add('bg-indigo-100', 'text-indigo-700', 'border-indigo-300');
+                } else {
+                    btn.classList.remove('bg-indigo-100', 'text-indigo-700', 'border-indigo-300');
+                }
+            });
+            
+            if(!isUndoing) saveHistory();
         }
     }
     
@@ -916,7 +976,7 @@
             const isItalic = activeObject.fontStyle === 'italic';
             activeObject.set('fontStyle', isItalic ? 'normal' : 'italic');
             
-             // Toggle button view
+            // Toggle button view
             const btn = document.getElementById('btn-italic');
             if (!isItalic) {
                  btn.classList.add('bg-indigo-100', 'text-indigo-700', 'border-indigo-300');
@@ -927,7 +987,7 @@
             const isUnderline = activeObject.underline;
             activeObject.set('underline', !isUnderline);
             
-             // Toggle button view
+            // Toggle button view
             const btn = document.getElementById('btn-underline');
             if (!isUnderline) {
                  btn.classList.add('bg-indigo-100', 'text-indigo-700', 'border-indigo-300');
@@ -937,6 +997,7 @@
         }
         
         currentCanvas.requestRenderAll();
+        if(!isUndoing) saveHistory();
     }
     
     function updateDimension(prop, value) {

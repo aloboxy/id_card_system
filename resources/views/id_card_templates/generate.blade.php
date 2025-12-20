@@ -2,6 +2,37 @@
 
 @section('header', 'Generate ID Cards')
 
+@push('styles')
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Cinzel&family=EB+Garamond&family=Grand+Hotel&family=Inter&family=Montserrat&family=Open+Sans&family=Pacifico&family=Playfair+Display&family=Poppins&family=Roboto&family=Work+Sans&display=swap" rel="stylesheet">
+<style>
+    /* Font Families */
+    .font-helvetica { font-family: 'Helvetica', 'Arial', sans-serif; }
+    .font-futura { font-family: 'Futura', 'Trebuchet MS', sans-serif; }
+    .font-roboto { font-family: 'Roboto', sans-serif; }
+    .font-inter { font-family: 'Inter', sans-serif; }
+    .font-poppins { font-family: 'Poppins', sans-serif; }
+    .font-montserrat { font-family: 'Montserrat', sans-serif; }
+    .font-opensans { font-family: 'Open Sans', sans-serif; }
+    .font-avenir { font-family: 'Avenir', 'Nunito', sans-serif; }
+    .font-worksans { font-family: 'Work Sans', sans-serif; }
+    .font-din { font-family: 'DIN', 'Oswald', sans-serif; }
+    
+    .font-garamond { font-family: 'Garamond', serif; }
+    .font-bodoni { font-family: 'Bodoni MT', 'Libre Bodoni', serif; }
+    .font-didot { font-family: 'Didot', 'Didot LT STD', serif; }
+    .font-baskerville { font-family: 'Baskerville', 'Baskerville Old Face', serif; }
+    .font-ebgaramond { font-family: 'EB Garamond', serif; }
+    
+    .font-playfair { font-family: 'Playfair Display', serif; }
+    .font-pacifico { font-family: 'Pacifico', cursive; }
+    .font-cinzel { font-family: 'Cinzel', serif; }
+    .font-alfaslab { font-family: 'Alfa Slab One', cursive; }
+    .font-grandhotel { font-family: 'Grand Hotel', cursive; }
+</style>
+@endpush
+
 @section('content')
 <div class="max-w-4xl mx-auto">
     <div class="bg-white shadow rounded-lg p-6 mb-6">
