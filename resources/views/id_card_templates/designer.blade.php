@@ -427,9 +427,6 @@
         }
 
         // Load existing data if any
-        const savedDataFront = @json($template->design_data ?? null);
-        const savedDataBack = @json($template->design_data_back ?? null);
-        
         let toLoad = 0;
         if (savedDataFront) toLoad++;
         if (savedDataBack) toLoad++;
