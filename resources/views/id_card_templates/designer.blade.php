@@ -400,39 +400,72 @@
         const savedDataFront = @json($template->design_data ?? null);
         const savedDataBack = @json($template->design_data_back ?? null);
 
+        // History Events
+        const historyEvents = ['object:added', 'object:removed', 'object:modified', 'object:skewing', 'object:scaling', 'object:rotating', 'object:moving'];
+
+        // Function to attach listeners
+        function attachHistoryListeners() {
+            historyEvents.forEach(event => {
+                canvasFront.on(event, () => {
+                    if (!isUndoing) saveHistory();
+                });
+                canvasBack.on(event, () => {
+                    if (!isUndoing) saveHistory();
+                });
+            });
+            
+            // Selection listeners (safe to attach earlier but good to keep together)
+            canvasFront.on('selection:created', onSelection);
+            canvasFront.on('selection:updated', onSelection);
+            canvasFront.on('object:scaling', onSelection);
+            canvasFront.on('selection:cleared', onDeselection);
+            
+            canvasBack.on('selection:created', onSelection);
+            canvasBack.on('selection:updated', onSelection);
+            canvasBack.on('object:scaling', onSelection);
+            canvasBack.on('selection:cleared', onDeselection);
+        }
+
+        // Load existing data if any
+        const savedDataFront = @json($template->design_data ?? null);
+        const savedDataBack = @json($template->design_data_back ?? null);
+        
+        let toLoad = 0;
+        if (savedDataFront) toLoad++;
+        if (savedDataBack) toLoad++;
+        
+        let loaded = 0;
+        
+        const initHistory = () => {
+             loaded++;
+             if (loaded >= toLoad) {
+                 // Save initial state after everything is loaded
+                 // Use a slight timeout to ensure render is complete
+                 setTimeout(() => {
+                     saveHistory();
+                     attachHistoryListeners();
+                 }, 100);
+             }
+        };
+
         if (savedDataFront) {
-            canvasFront.loadFromJSON(savedDataFront, canvasFront.renderAll.bind(canvasFront));
+            canvasFront.loadFromJSON(savedDataFront, () => {
+                canvasFront.renderAll();
+                initHistory();
+            });
         }
         
         if (savedDataBack) {
-            canvasBack.loadFromJSON(savedDataBack, canvasBack.renderAll.bind(canvasBack));
+            canvasBack.loadFromJSON(savedDataBack, () => {
+                canvasBack.renderAll();
+                initHistory();
+            });
         }
         
-        // Save initial state
-        saveHistory();
-
-        // Event listeners for history
-        const historyEvents = ['object:added', 'object:removed', 'object:modified', 'object:skewing', 'object:scaling', 'object:rotating', 'object:moving'];
-        
-        historyEvents.forEach(event => {
-            canvasFront.on(event, () => {
-                if (!isUndoing) saveHistory();
-            });
-            canvasBack.on(event, () => {
-                if (!isUndoing) saveHistory();
-            });
-        });
-
-        // Event listeners for selection
-        canvasFront.on('selection:created', onSelection);
-        canvasFront.on('selection:updated', onSelection);
-        canvasFront.on('object:scaling', onSelection); // Update inputs while scaling
-        canvasFront.on('selection:cleared', onDeselection);
-        
-        canvasBack.on('selection:created', onSelection);
-        canvasBack.on('selection:updated', onSelection);
-        canvasBack.on('object:scaling', onSelection); // Update inputs while scaling
-        canvasBack.on('selection:cleared', onDeselection);
+        if (toLoad === 0) {
+            saveHistory();
+            attachHistoryListeners();
+        }
 
         // Keyboard support
         document.addEventListener('keydown', function(e) {
@@ -526,9 +559,10 @@
             isUndoing = true;
             historyStep--;
             const state = history[historyStep];
-            loadState(state);
-            updateUndoRedoButtons();
-            isUndoing = false;
+            loadState(state, () => {
+                isUndoing = false;
+                updateUndoRedoButtons();
+            });
         }
     }
     
@@ -537,31 +571,36 @@
             isUndoing = true;
             historyStep++;
             const state = history[historyStep];
-            loadState(state);
-            updateUndoRedoButtons();
-            isUndoing = false;
+            loadState(state, () => {
+                 isUndoing = false;
+                 updateUndoRedoButtons();
+            });
         }
     }
     
-    function loadState(state) {
-        // We need to handle side switching if the state was on a different side? 
-        // Actually, we save both canvases every time, so we just restore both.
-        // But we might want to switch to the side the user was on? 
-        // Let's just restore data for now.
+    function loadState(state, callback) {
+        let loadedCount = 0;
+        const totalCanvases = 2; // Front and Back
+
+        const checkDone = () => {
+            loadedCount++;
+            if (loadedCount >= totalCanvases) {
+                if (state.side !== currentSide) {
+                     setSide(state.side);
+                }
+                if (callback) callback();
+            }
+        };
         
         canvasFront.loadFromJSON(state.front, () => {
              canvasFront.renderAll();
+             checkDone();
         });
         
         canvasBack.loadFromJSON(state.back, () => {
              canvasBack.renderAll();
+             checkDone();
         });
-        
-        // Optionally switch side if useful, but maybe confusing if user is looking at back and undo changes something on front.
-        // For now let's keep current side unless we want to strictly follow state "side".
-         if (state.side !== currentSide) {
-             setSide(state.side);
-         }
     }
     
     function updateUndoRedoButtons() {
