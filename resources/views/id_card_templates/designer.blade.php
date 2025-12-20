@@ -436,6 +436,10 @@
         const initHistory = () => {
              loaded++;
              if (loaded >= toLoad) {
+                 // Repair templates on load
+                 repairTemplate(canvasFront);
+                 repairTemplate(canvasBack);
+                 
                  // Save initial state after everything is loaded
                  // Use a slight timeout to ensure render is complete
                  setTimeout(() => {
@@ -444,6 +448,83 @@
                  }, 100);
              }
         };
+
+        function repairTemplate(canvas) {
+            const objects = canvas.getObjects();
+            let repairedCount = 0;
+            
+            const fieldMap = {
+                'Full Name': 'full_name',
+                'Student Name': 'full_name',
+                'Staff Name': 'full_name',
+                'Student ID': 'student_id',
+                'Staff ID': 'staff_id',
+                'Phone': 'phone',
+                'Email': 'email',
+                'Issue Date': 'issue_date',
+                'Expiry Date': 'expiry_date',
+                'Class': 'class',
+                'Class & Section': 'class_with_section',
+                'Date of Birth': 'dob',
+                'DOB': 'dob',
+                'Designation': 'designation',
+                'Department': 'department',
+                'Joining Date': 'joining_date'
+            };
+
+            objects.forEach(obj => {
+                if (!obj.data || !obj.data.field) {
+                    // 1. Repair Text Placeholders
+                    if (obj.type === 'i-text' || obj.type === 'text') {
+                        const text = obj.text || '';
+                        const match = text.match(/@{{([^}]+)}}/);
+                        if (match) {
+                            const label = match[1].trim();
+                            let field = fieldMap[label];
+                            
+                            if (!field) {
+                                // Try lowercase match
+                                const lowerLabel = label.toLowerCase().replace(/\s+/g, '_');
+                                if (Object.values(fieldMap).includes(lowerLabel)) {
+                                    field = lowerLabel;
+                                }
+                            }
+                            
+                            if (field) {
+                                obj.set('data', { field: field });
+                                repairedCount++;
+                            }
+                        }
+                    } 
+                    // 2. Repair Photo Placeholders
+                    else if (obj.type === 'rect' || obj.type === 'circle') {
+                        // If it's the grey placeholder color I use
+                        if (obj.fill === '#e0e0e0') {
+                            obj.set('data', { 
+                                field: 'photo', 
+                                shape: obj.type === 'circle' ? 'circle' : (obj.rx ? 'rounded' : 'rectangle') 
+                            });
+                            repairedCount++;
+                        }
+                    }
+                    // 3. Repair Group Placeholders (QR/Fingerprint)
+                    else if (obj.type === 'group') {
+                        const innerText = obj._objects?.find(io => (io.type === 'text' || io.type === 'i-text'))?.text;
+                        if (innerText === 'QR') {
+                            obj.set('data', { field: 'qr_code' });
+                            repairedCount++;
+                        } else if (innerText === 'FP') {
+                            obj.set('data', { field: 'fingerprint' });
+                            repairedCount++;
+                        }
+                    }
+                }
+            });
+            
+            if (repairedCount > 0) {
+                console.log(`Repaired ${repairedCount} objects on canvas.`);
+            }
+        }
 
         if (savedDataFront) {
             canvasFront.loadFromJSON(savedDataFront, () => {
@@ -525,6 +606,13 @@
         });
     });
     
+    // Ensure custom 'data' property is always included in serialization
+    fabric.Object.prototype.toObject = (function(toObject) {
+        return function(additionalProperties) {
+            return toObject.call(this, ['data'].concat(additionalProperties));
+        };
+    })(fabric.Object.prototype.toObject);
+
     // History Functions
     function saveHistory() {
         if (isUndoing) return; // Don't save if we are currently undoing/redoing
@@ -541,8 +629,8 @@
         }
 
         const state = {
-            front: JSON.stringify(canvasFront.toJSON()),
-            back: JSON.stringify(canvasBack.toJSON()),
+            front: JSON.stringify(canvasFront.toJSON(['data'])),
+            back: JSON.stringify(canvasBack.toJSON(['data'])),
             side: currentSide
         };
         

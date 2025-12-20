@@ -202,7 +202,13 @@
 
                 console.log('Total objects on canvas:', objects.length);
                 objects.forEach((obj, index) => {
-                    console.log(`Object ${index}:`, obj.type, 'data:', obj.data);
+                    console.log(`Object ${index}: ${obj.type}`, {
+                        fill: obj.fill,
+                        text: obj.text,
+                        data: obj.data,
+                        left: obj.left,
+                        top: obj.top
+                    });
                     
                     // Text Replacements
                     if (obj.type === 'i-text' || obj.type === 'text') {
@@ -303,12 +309,39 @@
                          }
                     }
                     
+                    // --- FALLBACK DETECTION START ---
+                    // If data is missing, try to infer the field from other properties
+                    if (!obj.data || !obj.data.field) {
+                        const fallbacks = {
+                            photo: (obj.type === 'rect' || obj.type === 'circle') && obj.fill === '#e0e0e0',
+                            qr_code: obj.type === 'group' && obj._objects && obj._objects.some(io => io.text === 'QR'),
+                            fingerprint: obj.type === 'group' && obj._objects && obj._objects.some(io => io.text === 'FP'),
+                            issue_date: (obj.type === 'i-text' || obj.type === 'text') && obj.text === 'Issue Date',
+                            expiry_date: (obj.type === 'i-text' || obj.type === 'text') && obj.text === 'Expiry Date'
+                        };
+                        
+                        for (const [field, matched] of Object.entries(fallbacks)) {
+                            if (matched) {
+                                console.log(`Inferred missing field: ${field} for ${obj.type}`);
+                                if (!obj.data) obj.data = {};
+                                obj.data.field = field;
+                                break;
+                            }
+                        }
+                        
+                        // Special case for text placeholders like @{{full_name}}
+                        if ((obj.type === 'i-text' || obj.type === 'text') && obj.text && obj.text.includes('@{{')) {
+                            // Already handled by the regex replacement logic below, but good to note
+                        }
+                    }
+                    // --- FALLBACK DETECTION END ---
+
                     // Profile Photo - check both direct objects and groups
                     const isPhoto = (obj.data && obj.data.field === 'photo') || 
                                     (obj.type === 'group' && obj.data && obj.data.field === 'photo');
                     
                     if (isPhoto) {
-                        // console.log('Found photo placeholder');
+                        console.log('Processing photo placeholder');
                         // console.log('Profile photo path:', record.photo_path || record.profile_photo_path);
                         
                         // Try both photo_path and profile_photo_path
@@ -325,14 +358,37 @@
                             const imgElement = new Image();
                             imgElement.crossOrigin = 'Anonymous';
                             
+                            // Smart URL handling
+                            let finalPhotoUrl = photoUrl;
+                            
+                            if (photoPath) {
+                                // 1. Handle absolute URLs
+                                if (photoPath.startsWith('http')) {
+                                    finalPhotoUrl = photoPath;
+                                } 
+                                // 2. Handle paths that already have /storage/
+                                else if (photoPath.indexOf('storage/') > -1) {
+                                    if (!photoPath.startsWith('/')) {
+                                        finalPhotoUrl = '/' + photoPath;
+                                    } else {
+                                        finalPhotoUrl = photoPath;
+                                    }
+                                } 
+                            }
+                            
                             imgElement.onload = function() {
                                 try {
                                     console.log('Image loaded successfully, dimensions:', imgElement.width, 'x', imgElement.height);
                                     
+                                    // Get placeholder's actual top-left coordinates regardless of origin
+                                    const topLeft = obj.getPointByOrigin('left', 'top');
+                                    const objWidth = obj.getScaledWidth();
+                                    const objHeight = obj.getScaledHeight();
+
                                     // Create fabric image from the loaded image element
                                     const fabricImg = new fabric.Image(imgElement, {
-                                        left: obj.left,
-                                        top: obj.top,
+                                        left: topLeft.x,
+                                        top: topLeft.y,
                                         originX: 'left',
                                         originY: 'top',
                                         selectable: false,
@@ -342,8 +398,6 @@
                                     
                                     // Get shape info
                                     const shape = obj.data?.shape || 'rectangle';
-                                    const objWidth = obj.getScaledWidth();
-                                    const objHeight = obj.getScaledHeight();
                                     
                                     // Calculate scaling to fill the frame while maintaining aspect ratio
                                     const scaleX = objWidth / fabricImg.width;
@@ -354,8 +408,8 @@
                                     fabricImg.scale(scale);
                                     
                                     // Center the image in the frame
-                                    const centerX = obj.left + (objWidth - (fabricImg.width * scale)) / 2;
-                                    const centerY = obj.top + (objHeight - (fabricImg.height * scale)) / 2;
+                                    const centerX = topLeft.x + (objWidth - (fabricImg.width * scale)) / 2;
+                                    const centerY = topLeft.y + (objHeight - (fabricImg.height * scale)) / 2;
                                     
                                     fabricImg.set({
                                         left: centerX,
@@ -394,8 +448,15 @@
                                         });
                                     }
                                     
-                                    // Add the image to canvas and remove the placeholder
-                                    canvas.add(fabricImg);
+                                    // Add the image to canvas AT THE SAME INDEX as the placeholder
+                                    // This ensures it stays behind any overlays (like frames)
+                                    const objIndex = canvas.getObjects().indexOf(obj);
+                                    if (objIndex !== -1) {
+                                        canvas.insertAt(fabricImg, objIndex);
+                                    } else {
+                                        canvas.add(fabricImg);
+                                    }
+                                    
                                     canvas.remove(obj);
                                     
                                     console.log('Photo added with shape:', shape, 'at position:', centerX, centerY, 'with scale:', scale);
@@ -412,13 +473,13 @@
                             };
                             
                             imgElement.onerror = function() {
-                                console.error('Failed to load image from:', photoUrl);
+                                console.error('Failed to load image from:', finalPhotoUrl);
                                 pendingImages--;
                                 checkDone();
                             };
                             
                             // Start loading the image
-                            imgElement.src = photoUrl;
+                            imgElement.src = finalPhotoUrl;
                             
                             // Add a timeout to prevent hanging
                             setTimeout(() => {
@@ -454,17 +515,24 @@
                                 
                                 console.log('QR code loaded successfully');
                                 
-                                // Get dimensions from the object or group
-                                const width = obj.width || obj.getScaledWidth();
-                                const height = obj.height || obj.getScaledHeight();
+                                // Get standard top-left
+                                const topLeft = obj.getPointByOrigin('left', 'top');
+                                const width = obj.getScaledWidth();
                                 
                                 qrImg.scaleToWidth(width);
                                 qrImg.set({
-                                    left: obj.left,
-                                    top: obj.top
+                                    left: topLeft.x,
+                                    top: topLeft.y
                                 });
                                 
-                                canvas.add(qrImg);
+                                // Preserve Z-index
+                                const objIndex = canvas.getObjects().indexOf(obj);
+                                if (objIndex !== -1) {
+                                    canvas.insertAt(qrImg, objIndex);
+                                } else {
+                                    canvas.add(qrImg);
+                                }
+                                
                                 canvas.remove(obj);
                                 console.log('QR code added to canvas');
                                 pendingImages--;
@@ -482,13 +550,26 @@
                             const fingerprintUrl = '/storage/' + record.fingerprint_image_path;
                             fabric.Image.fromURL(fingerprintUrl, function(img) {
                                 if (!img) { pendingImages--; checkDone(); return; }
+                                // Get standard top-left
+                                const topLeft = obj.getPointByOrigin('left', 'top');
+                                const objWidth = obj.getScaledWidth();
+                                const objHeight = obj.getScaledHeight();
+
                                 img.set({
-                                    left: obj.left,
-                                    top: obj.top,
-                                    scaleX: (obj.width * obj.scaleX) / img.width,
-                                    scaleY: (obj.height * obj.scaleY) / img.height
+                                    left: topLeft.x,
+                                    top: topLeft.y,
+                                    scaleX: objWidth / img.width,
+                                    scaleY: objHeight / img.height
                                 });
-                                canvas.add(img);
+                                
+                                // Preserve Z-index
+                                const objIndex = canvas.getObjects().indexOf(obj);
+                                if (objIndex !== -1) {
+                                    canvas.insertAt(img, objIndex);
+                                } else {
+                                    canvas.add(img);
+                                }
+                                
                                 canvas.remove(obj);
                                 pendingImages--;
                                 checkDone();
