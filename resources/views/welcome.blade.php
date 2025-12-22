@@ -4,7 +4,7 @@
     <div class="login-container">
         <div class="login-card">
             <div class="logo-container">
-                {{-- <div class="logo-icon">
+                <div class="logo-icon">
                     @php
                         $setting = \App\Models\Setting::first();
                     @endphp
@@ -13,7 +13,7 @@
                     @else
                         <i class="fas fa-vote-yea"></i>
                     @endif
-                </div> --}}
+                </div>
                 <h1 class="welcome-text">Welcome back</h1>
                 <p class="subtitle-text">Please enter your details.</p>
             </div>

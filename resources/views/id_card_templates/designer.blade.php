@@ -18,6 +18,14 @@
     .font-avenir { font-family: 'Avenir', 'Nunito', sans-serif; }
     .font-worksans { font-family: 'Work Sans', sans-serif; }
     .font-din { font-family: 'DIN', 'Oswald', sans-serif; }
+    .font-arial { font-family: 'Arial', sans-serif; }
+    .font-timesnewroman { font-family: 'Times New Roman', serif; }
+    .font-couriernew { font-family: 'Courier New', monospace; }
+    .font-verdana { font-family: 'Verdana', sans-serif; }
+    .font-georgia { font-family: 'Georgia', serif; }
+    .font-tahoma { font-family: 'Tahoma', sans-serif; }
+    .font-trebuchetms { font-family: 'Trebuchet MS', sans-serif; }
+    .font-impact { font-family: 'Impact', sans-serif; }
     
     .font-garamond { font-family: 'Garamond', serif; }
     .font-bodoni { font-family: 'Bodoni MT', 'Libre Bodoni', serif; }
@@ -279,6 +287,10 @@
                                 <option value="Times New Roman" style="font-family: 'Times New Roman';">Times New Roman</option>
                                 <option value="Courier New" style="font-family: 'Courier New';">Courier New</option>
                                 <option value="Verdana" style="font-family: Verdana;">Verdana</option>
+                                <option value="Georgia" style="font-family: Georgia;">Georgia</option>
+                                <option value="Tahoma" style="font-family: Tahoma;">Tahoma</option>
+                                <option value="Trebuchet MS" style="font-family: 'Trebuchet MS';">Trebuchet MS</option>
+                                <option value="Impact" style="font-family: Impact;">Impact</option>
                             </optgroup>
                         </select>
                     </div>

@@ -41,6 +41,7 @@
                     @endif
                     <span class="text-xl font-bold text-indigo-600 tracking-wider truncate">{{ $systemName }}</span>
                 </div>
+                {{ 'Hello' }}
                 <button onclick="toggleMobileSidebar()" class="md:hidden text-gray-500 hover:text-gray-700">
                     <i class="fas fa-times text-xl"></i>
                 </button>
