@@ -323,18 +323,26 @@
 
                 // Check for zoom capability after camera change
                 setTimeout(() => {
-                    const track = stream.getVideoTracks()[0];
-                    const capabilities = track.getCapabilities();
+                    const tracks = stream.getVideoTracks();
+                    if (tracks.length === 0) return;
+                    
+                    const track = tracks[0];
                     const zoomContainer = document.getElementById(`zoom-container-${type}`);
                     const zoomRange = document.getElementById(`zoom-range-${type}`);
 
-                    if (capabilities.zoom) {
-                        zoomContainer.classList.remove('hidden');
-                        zoomRange.min = capabilities.zoom.min;
-                        zoomRange.max = capabilities.zoom.max;
-                        zoomRange.step = capabilities.zoom.step;
-                        zoomRange.value = capabilities.zoom.min;
+                    if (typeof track.getCapabilities === 'function') {
+                        const capabilities = track.getCapabilities();
+                        if (capabilities.zoom) {
+                            zoomContainer.classList.remove('hidden');
+                            zoomRange.min = capabilities.zoom.min;
+                            zoomRange.max = capabilities.zoom.max;
+                            zoomRange.step = capabilities.zoom.step;
+                            zoomRange.value = capabilities.zoom.min;
+                        } else {
+                            zoomContainer.classList.add('hidden');
+                        }
                     } else {
+                        console.log("Zoom not supported: getCapabilities not available");
                         zoomContainer.classList.add('hidden');
                     }
                 }, 500);
