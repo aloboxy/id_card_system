@@ -83,12 +83,18 @@
 
                     {{-- Camera UI --}}
                     <div id="camera-container-profile" class="hidden mt-3 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                        <div class="mb-3">
-                            <label for="camera-select-profile" class="block text-sm font-medium text-gray-700 mb-1">Select Camera</label>
-                            <select id="camera-select-profile" onchange="changeCamera('profile')" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2">
-                                <option value="user">Front Camera (Selfie)</option>
-                                <option value="environment" selected>Back Camera (Main)</option>
-                            </select>
+                        <div class="mb-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="camera-select-profile" class="block text-sm font-medium text-gray-700 mb-1">Select Camera</label>
+                                <select id="camera-select-profile" onchange="changeCamera('profile')" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2">
+                                    <option value="user">Front Camera (Selfie)</option>
+                                    <option value="environment" selected>Back Camera (Main)</option>
+                                </select>
+                            </div>
+                            <div id="zoom-container-profile" class="hidden">
+                                <label for="zoom-range-profile" class="block text-sm font-medium text-gray-700 mb-1">Zoom</label>
+                                <input type="range" id="zoom-range-profile" oninput="applyZoom('profile', this.value)" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600 mt-2">
+                            </div>
                         </div>
                         <div class="relative max-w-sm mx-auto">
                             <video id="video-profile" autoplay playsinline class="w-full rounded-lg bg-black"></video>
@@ -237,11 +243,14 @@
         if (container.classList.contains('hidden')) {
             // Check if browser supports mediaDevices
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                alert("Camera API is not supported in this browser or context. Note: Camera access usually requires HTTPS (or localhost).");
+                const message = "Camera API is not supported in this browser or context. \n\nNote: Camera access REQUIRES HTTPS (or localhost). If you are using a custom domain over HTTP, the browser will block camera access for security.";
+                console.error(message);
+                alert(message);
                 return;
             }
 
             try {
+                console.log("Requesting camera access...");
                 if (stream) {
                     stream.getTracks().forEach(track => track.stop());
                 }
@@ -251,6 +260,32 @@
                 });
                 video.srcObject = stream;
                 container.classList.remove('hidden');
+
+                // Check for zoom capability
+                setTimeout(() => {
+                    const tracks = stream.getVideoTracks();
+                    if (tracks.length === 0) return;
+                    
+                    const track = tracks[0];
+                    if (typeof track.getCapabilities !== 'function') {
+                        console.log("Zoom not supported: getCapabilities not available");
+                        return;
+                    }
+
+                    const capabilities = track.getCapabilities();
+                    const zoomContainer = document.getElementById(`zoom-container-${type}`);
+                    const zoomRange = document.getElementById(`zoom-range-${type}`);
+
+                    if (capabilities.zoom) {
+                        zoomContainer.classList.remove('hidden');
+                        zoomRange.min = capabilities.zoom.min;
+                        zoomRange.max = capabilities.zoom.max;
+                        zoomRange.step = capabilities.zoom.step;
+                        zoomRange.value = track.getConstraints().advanced?.[0]?.zoom || capabilities.zoom.min;
+                    } else {
+                        zoomContainer.classList.add('hidden');
+                    }
+                }, 500); // Small delay to allow stream initialization
             } catch (err) {
                 console.error("Error accessing camera:", err);
                 if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
@@ -279,9 +314,40 @@
                     video: { facingMode: faceMode } 
                 });
                 video.srcObject = stream;
+
+                // Check for zoom capability after camera change
+                setTimeout(() => {
+                    const track = stream.getVideoTracks()[0];
+                    const capabilities = track.getCapabilities();
+                    const zoomContainer = document.getElementById(`zoom-container-${type}`);
+                    const zoomRange = document.getElementById(`zoom-range-${type}`);
+
+                    if (capabilities.zoom) {
+                        zoomContainer.classList.remove('hidden');
+                        zoomRange.min = capabilities.zoom.min;
+                        zoomRange.max = capabilities.zoom.max;
+                        zoomRange.step = capabilities.zoom.step;
+                        zoomRange.value = capabilities.zoom.min;
+                    } else {
+                        zoomContainer.classList.add('hidden');
+                    }
+                }, 500);
             } catch (err) {
                 console.error("Error switching camera:", err);
                 alert("Error switching camera: " + err.message);
+            }
+        }
+    }
+
+    async function applyZoom(type, value) {
+        if (stream) {
+            const track = stream.getVideoTracks()[0];
+            try {
+                await track.applyConstraints({
+                    advanced: [{ zoom: value }]
+                });
+            } catch (err) {
+                console.error("Error applying zoom:", err);
             }
         }
     }
