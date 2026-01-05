@@ -6,6 +6,7 @@ use App\Models\Staff;
 use App\Models\School;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Validation\Rule;
 
 class StaffController extends Controller
 {
@@ -111,8 +112,13 @@ class StaffController extends Controller
             'middle_name' => 'nullable|string|max:255',
             'last_name' => 'required|string|max:255',
             'school_id' => 'required|exists:schools,id',
-            'staff_id' => 'nullable|string|max:255',
-            'email' => 'nullable|string|email|max:255|unique:staff',
+            'staff_id' => [
+                'nullable', 'string', 'max:255',
+                Rule::unique('staff')->where(function ($query) use ($request) {
+                    return $query->where('school_id', $request->school_id);
+                })
+            ],
+            'email' => 'nullable|string|email|max:255|unique:staff,email',
             'phone' => 'nullable|string|max:255',
             'designation' => 'required|string|max:255',
             'department' => 'nullable|string|max:255',
@@ -130,9 +136,34 @@ class StaffController extends Controller
                 return back()->withErrors(['school_id' => 'School must have a school code to auto-generate staff ID.'])->withInput();
             }
 
-            // Get next staff number for this school (using a simple count + 1 for now, similar to student)
-            $count = Staff::where('school_id', $school->id)->count() + 1;
-            $staffId = 'STf-'.strtoupper($school->school_code).'-'.str_pad($count, 4, '0', STR_PAD_LEFT);
+            // Get next staff number for this school by finding the maximum existing ID
+            $prefix = 'STf-' . strtoupper($school->school_code) . '-';
+            $lastStaff = Staff::withTrashed()
+                ->where('school_id', $school->id)
+                ->where('staff_id', 'like', $prefix . '%')
+                ->orderByRaw('CAST(SUBSTRING(staff_id, ' . (strlen($prefix) + 1) . ') AS UNSIGNED) DESC')
+                ->first();
+
+            $nextNumber = 1;
+            if ($lastStaff) {
+                $lastId = $lastStaff->staff_id;
+                $numberPart = substr($lastId, strlen($prefix));
+                if (is_numeric($numberPart)) {
+                    $nextNumber = (int)$numberPart + 1;
+                }
+            }
+
+            // Ensure uniqueness in case of gaps or manual entries
+            do {
+                $staffId = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+                $exists = Staff::withTrashed()
+                    ->where('school_id', $school->id)
+                    ->where('staff_id', $staffId)
+                    ->exists();
+                if ($exists) {
+                    $nextNumber++;
+                }
+            } while ($exists);
 
             $validated['staff_id'] = $staffId;
         }
@@ -181,7 +212,12 @@ class StaffController extends Controller
             'middle_name' => 'nullable|string|max:255',
             'last_name' => 'required|string|max:255',
             'school_id' => 'required|exists:schools,id',
-            'staff_id' => 'required|string|max:255',
+            'staff_id' => [
+                'required', 'string', 'max:255',
+                Rule::unique('staff')->where(function ($query) use ($request) {
+                    return $query->where('school_id', $request->school_id);
+                })->ignore($staff->id)
+            ],
             'email' => 'nullable|string|email|max:255|unique:staff,email,' . $staff->id,
             'phone' => 'nullable|string|max:255',
             'designation' => 'required|string|max:255',

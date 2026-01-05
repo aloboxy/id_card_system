@@ -4,17 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Models\Student;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Yajra\DataTables\Facades\DataTables;
 
 class StudentController extends Controller
 {
-    function __construct()
+    public function __construct()
     {
-         $this->middleware('permission:student-list|student-create|student-edit|student-delete', ['only' => ['index','show']]);
-         $this->middleware('permission:student-create', ['only' => ['create','store']]);
-         $this->middleware('permission:student-edit', ['only' => ['edit','update']]);
-         $this->middleware('permission:student-delete', ['only' => ['destroy']]);
+        $this->middleware('permission:student-list|student-create|student-edit|student-delete', ['only' => ['index', 'show']]);
+        $this->middleware('permission:student-create', ['only' => ['create', 'store']]);
+        $this->middleware('permission:student-edit', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:student-delete', ['only' => ['destroy']]);
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -58,21 +60,21 @@ class StudentController extends Controller
                     $method = method_field('DELETE');
 
                     $btns = '<div class="flex items-center justify-end space-x-2">';
-                    
-                    if(auth()->user()->can('student-list')){ // Assuming view requires list
-                         $btns .= '<a href="'.$viewUrl.'" class="p-1 px-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="View">
+
+                    if (auth()->user()->can('student-list')) { // Assuming view requires list
+                        $btns .= '<a href="'.$viewUrl.'" class="p-1 px-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="View">
                                 <i class="fas fa-eye"></i>
                             </a>';
                     }
 
-                    if(auth()->user()->can('student-edit')){
-                         $btns .= '<a href="'.$editUrl.'" class="p-1 px-2 text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors" title="Edit">
+                    if (auth()->user()->can('student-edit')) {
+                        $btns .= '<a href="'.$editUrl.'" class="p-1 px-2 text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </a>';
                     }
 
-                    if(auth()->user()->can('student-delete')){
-                         $btns .= '<form action="'.$deleteUrl.'" method="POST" class="inline-block" onsubmit="return confirm(\'Are you sure you want to delete this student?\');">
+                    if (auth()->user()->can('student-delete')) {
+                        $btns .= '<form action="'.$deleteUrl.'" method="POST" class="inline-block" onsubmit="return confirm(\'Are you sure you want to delete this student?\');">
                                 '.$csrf.'
                                 '.$method.'
                                 <button type="submit" class="p-1 px-2 text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Delete">
@@ -80,8 +82,9 @@ class StudentController extends Controller
                                 </button>
                             </form>';
                     }
-                    
+
                     $btns .= '</div>';
+
                     return $btns;
                 })
                 ->rawColumns(['full_name', 'school_name', 'class', 'is_active', 'action'])
@@ -105,8 +108,18 @@ class StudentController extends Controller
             'middle_name' => 'nullable|string|max:255',
             'last_name' => 'required|string|max:255',
             'school_id' => 'required|exists:schools,id',
-            'student_id' => 'nullable|string|max:255',
-            'admission_number' => 'nullable|string|max:255',
+            'student_id' => [
+                'nullable', 'string', 'max:255',
+                Rule::unique('students')->where(function ($query) use ($request) {
+                    return $query->where('school_id', $request->school_id);
+                }),
+            ],
+            'admission_number' => [
+                'nullable', 'string', 'max:255',
+                Rule::unique('students')->where(function ($query) use ($request) {
+                    return $query->where('school_id', $request->school_id);
+                }),
+            ],
             'class' => 'required|string|max:255',
             'date_of_birth' => 'required|date',
             'gender' => 'required|in:male,female,other',
@@ -125,9 +138,34 @@ class StudentController extends Controller
                 return back()->withErrors(['school_id' => 'School must have a school code to auto-generate student ID.'])->withInput();
             }
 
-            // Get next student number for this school
-            $count = \App\Models\Student::where('school_id', $school->id)->count() + 1;
-            $studentId = strtoupper($school->school_code).'-'.str_pad($count, 4, '0', STR_PAD_LEFT);
+            // Get next student number for this school by finding the maximum existing ID
+            $prefix = strtoupper($school->school_code).'-';
+            $lastStudent = Student::withTrashed()
+                ->where('school_id', $school->id)
+                ->where('student_id', 'like', $prefix.'%')
+                ->orderByRaw('CAST(SUBSTRING(student_id, '.(strlen($prefix) + 1).') AS UNSIGNED) DESC')
+                ->first();
+
+            $nextNumber = 1;
+            if ($lastStudent) {
+                $lastId = $lastStudent->student_id;
+                $numberPart = substr($lastId, strlen($prefix));
+                if (is_numeric($numberPart)) {
+                    $nextNumber = (int) $numberPart + 1;
+                }
+            }
+
+            // Ensure uniqueness in case of gaps or manual entries
+            do {
+                $studentId = $prefix.str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+                $exists = Student::withTrashed()
+                    ->where('school_id', $school->id)
+                    ->where('student_id', $studentId)
+                    ->exists();
+                if ($exists) {
+                    $nextNumber++;
+                }
+            } while ($exists);
 
             $validated['student_id'] = $studentId;
             $validated['admission_number'] = $studentId;
@@ -173,8 +211,18 @@ class StudentController extends Controller
             'last_name' => 'required|string|max:255',
             'middle_name' => 'nullable|string|max:255',
             'school_id' => 'required|exists:schools,id',
-            'student_id' => 'required|string|max:255',
-            'admission_number' => 'required|string|max:255',
+            'student_id' => [
+                'required', 'string', 'max:255',
+                Rule::unique('students')->where(function ($query) use ($request) {
+                    return $query->where('school_id', $request->school_id);
+                })->ignore($student->id),
+            ],
+            'admission_number' => [
+                'required', 'string', 'max:255',
+                Rule::unique('students')->where(function ($query) use ($request) {
+                    return $query->where('school_id', $request->school_id);
+                })->ignore($student->id),
+            ],
             'class' => 'required|string|max:255',
             'date_of_birth' => 'required|date',
             'gender' => 'required|in:male,female,other',
