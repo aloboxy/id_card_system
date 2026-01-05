@@ -68,7 +68,41 @@
                 {{-- Profile Photo --}}
                 <div class="md:col-span-2">
                     <label for="profile_photo" class="block text-sm font-medium text-gray-700">Profile Photo (Optional)</label>
-                    <input type="file" name="profile_photo" id="profile_photo" accept="image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                    
+                    {{-- Preview Area --}}
+                    <div id="profile-photo-preview" class="hidden mb-3 mt-2">
+                        <img id="profile-photo-img" src="" alt="Profile Photo Preview" class="h-32 w-32 object-cover border-2 border-gray-300 rounded-lg shadow-sm">
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                        <input type="file" name="profile_photo" id="profile_photo" accept="image/*" onchange="previewProfilePhoto(event)" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                        <button type="button" onclick="toggleCamera('profile')" class="mt-1 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            <i class="fas fa-camera mr-2"></i> Use Camera
+                        </button>
+                    </div>
+
+                    {{-- Camera UI --}}
+                    <div id="camera-container-profile" class="hidden mt-3 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                        <div class="mb-3">
+                            <label for="camera-select-profile" class="block text-sm font-medium text-gray-700 mb-1">Select Camera</label>
+                            <select id="camera-select-profile" onchange="changeCamera('profile')" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2">
+                                <option value="user">Front Camera (Selfie)</option>
+                                <option value="environment" selected>Back Camera (Main)</option>
+                            </select>
+                        </div>
+                        <div class="relative max-w-sm mx-auto">
+                            <video id="video-profile" autoplay playsinline class="w-full rounded-lg bg-black"></video>
+                            <canvas id="canvas-profile" class="hidden"></canvas>
+                        </div>
+                        <div class="mt-3 flex justify-center space-x-3">
+                            <button type="button" onclick="capturePhoto('profile')" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                Capture
+                            </button>
+                            <button type="button" onclick="stopCamera('profile')" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
                     @error('profile_photo')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
@@ -127,4 +161,108 @@
         </form>
     </div>
 </div>
+@push('scripts')
+<script>
+    let stream = null;
+
+    function previewProfilePhoto(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('profile-photo-preview');
+                const img = document.getElementById('profile-photo-img');
+                img.src = e.target.result;
+                preview.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    async function toggleCamera(type) {
+        const container = document.getElementById(`camera-container-${type}`);
+        const video = document.getElementById(`video-${type}`);
+        const faceMode = document.getElementById(`camera-select-${type}`).value;
+        
+        if (container.classList.contains('hidden')) {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert("Camera API is not supported in this browser or context.");
+                return;
+            }
+
+            try {
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+                
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: faceMode } 
+                });
+                video.srcObject = stream;
+                container.classList.remove('hidden');
+            } catch (err) {
+                console.error("Error accessing camera:", err);
+                alert("Error accessing camera: " + err.message);
+            }
+        } else {
+            stopCamera(type);
+        }
+    }
+
+    async function changeCamera(type) {
+        if (stream) {
+            const video = document.getElementById(`video-${type}`);
+            const faceMode = document.getElementById(`camera-select-${type}`).value;
+
+            try {
+                stream.getTracks().forEach(track => track.stop());
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: faceMode } 
+                });
+                video.srcObject = stream;
+            } catch (err) {
+                console.error("Error switching camera:", err);
+                alert("Error switching camera: " + err.message);
+            }
+        }
+    }
+
+    function stopCamera(type) {
+        const container = document.getElementById(`camera-container-${type}`);
+        const video = document.getElementById(`video-${type}`);
+        
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            stream = null;
+        }
+        
+        video.srcObject = null;
+        container.classList.add('hidden');
+    }
+
+    function capturePhoto(type) {
+        const video = document.getElementById(`video-${type}`);
+        const canvas = document.getElementById(`canvas-${type}`);
+        const context = canvas.getContext('2d');
+        const fileInput = document.getElementById('profile_photo');
+
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            canvas.toBlob(blob => {
+                const file = new File([blob], `staff_photo_${Date.now()}.jpg`, { type: "image/jpeg" });
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                fileInput.files = dataTransfer.files;
+
+                const event = { target: { files: [file] } };
+                previewProfilePhoto(event);
+                stopCamera(type);
+            }, 'image/jpeg', 0.95);
+        }
+    }
+</script>
+@endpush
 @endsection

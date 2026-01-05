@@ -88,6 +88,13 @@
 
                     {{-- Camera UI --}}
                     <div id="camera-container-profile" class="hidden mt-3 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                        <div class="mb-3">
+                            <label for="camera-select-profile" class="block text-sm font-medium text-gray-700 mb-1">Select Camera</label>
+                            <select id="camera-select-profile" onchange="changeCamera('profile')" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2">
+                                <option value="user">Front Camera (Selfie)</option>
+                                <option value="environment" selected>Back Camera (Main)</option>
+                            </select>
+                        </div>
                         <div class="relative max-w-sm mx-auto">
                             <video id="video-profile" autoplay playsinline class="w-full rounded-lg bg-black"></video>
                             <canvas id="canvas-profile" class="hidden"></canvas>
@@ -231,6 +238,7 @@
     async function toggleCamera(type) {
         const container = document.getElementById(`camera-container-${type}`);
         const video = document.getElementById(`video-${type}`);
+        const faceMode = document.getElementById(`camera-select-${type}`).value;
         
         if (container.classList.contains('hidden')) {
             // Check if browser supports mediaDevices
@@ -240,7 +248,13 @@
             }
 
             try {
-                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: faceMode } 
+                });
                 video.srcObject = stream;
                 container.classList.remove('hidden');
             } catch (err) {
@@ -257,6 +271,24 @@
             }
         } else {
             stopCamera(type);
+        }
+    }
+
+    async function changeCamera(type) {
+        if (stream) {
+            const video = document.getElementById(`video-${type}`);
+            const faceMode = document.getElementById(`camera-select-${type}`).value;
+
+            try {
+                stream.getTracks().forEach(track => track.stop());
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: faceMode } 
+                });
+                video.srcObject = stream;
+            } catch (err) {
+                console.error("Error switching camera:", err);
+                alert("Error switching camera: " + err.message);
+            }
         }
     }
 
