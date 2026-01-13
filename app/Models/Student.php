@@ -163,48 +163,49 @@ class Student extends Model
     /**
      * Generate QR code URL for the student.
      */
-    public function getQrCodeUrlAttribute(): string
-    {
-        // Generate QR code with comprehensive student information
-        $school = $this->school;
+public function getQrCodeUrlAttribute(): string
+{
+    $school = $this->school;
 
-        $qrData = "=== STUDENT ID CARD ===\n\n";
+    $qrData = "=== STUDENT ID CARD ===\n\n";
 
-        if ($school) {
-            $qrData .= "School: {$school->name}\n";
-        }
-
-        $qrData .= "Student ID: {$this->student_id}\n";
-        $qrData .= "Name: {$this->first_name} {$this->last_name}\n";
-
-        if ($this->middle_name) {
-            $qrData .= "Middle Name: {$this->middle_name}\n";
-        }
-
-        $qrData .= "Class: {$this->class}\n";
-
-        if ($this->section) {
-            $qrData .= "Section: {$this->section}\n";
-        }
-
-        if ($this->admission_number) {
-            $qrData .= "Admission No: {$this->admission_number}\n";
-        }
-
-        if ($this->date_of_birth) {
-            $qrData .= "DOB: {$this->date_of_birth->format('Y-m-d')}\n";
-        }
-
-        if ($this->gender) {
-            $qrData .= "Gender: {$this->gender}\n";
-        }
-
-        // Generate QR code as SVG data URL using SimpleSoftwareIO/simple-qrcode
-        $qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::size(200)
-            ->format('svg')
-            ->errorCorrection('H')
-            ->generate($qrData);
-
-        return 'data:image/svg+xml;base64,'.base64_encode($qrCode);
+    if ($school) {
+        $qrData .= "School: {$school->name}\n";
     }
+
+    $qrData .= "Student ID: {$this->student_id}\n";
+    $qrData .= "Name: {$this->first_name} {$this->last_name}\n";
+
+    if ($this->middle_name) {
+        $qrData .= "Middle Name: {$this->middle_name}\n";
+    }
+
+    $qrData .= "Class: {$this->class}\n";
+
+    if ($this->section) {
+        $qrData .= "Section: {$this->section}\n";
+    }
+
+    if ($this->admission_number) {
+        $qrData .= "Admission No: {$this->admission_number}\n";
+    }
+
+    if ($this->date_of_birth) {
+        $qrData .= "DOB: {$this->date_of_birth->format('Y-m-d')}\n";
+    }
+
+    if ($this->gender) {
+        $qrData .= "Gender: {$this->gender}\n";
+    }
+
+    // ✅ FORCE UTF-8 ENCODING (THIS SOLVES THE ERROR)
+    $qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::encoding('UTF-8')
+        ->size(200)
+        ->format('svg')
+        ->errorCorrection('H')
+        ->generate($qrData);
+
+    return 'data:image/svg+xml;base64,' . base64_encode($qrCode);
+}
+
 }
