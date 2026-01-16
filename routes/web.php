@@ -13,6 +13,7 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 Route::middleware(['auth'])->group(function () {
     // General Routes
     Route::resource('students', App\Http\Controllers\StudentController::class);
+    Route::post('/students/{student}/update-photo', [App\Http\Controllers\StudentController::class, 'updatePhoto'])->name('students.update-photo');
 
     // Admin Only Routes
     Route::middleware(['role:admin'])->group(function () {

@@ -1,5 +1,25 @@
 @extends('layouts.app')
 
+@push('styles')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css?v={{ time() }}">
+<style>
+    .img-container {
+        width: 100%;
+        min-height: 400px;
+        max-height: 500px;
+        background-color: #f3f4f6;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .img-container img {
+        display: block;
+        max-width: 100%;
+        max-height: 100%;
+    }
+</style>
+@endpush
+
 @section('header', 'Add Student')
 
 @section('content')
@@ -79,6 +99,38 @@
                         <button type="button" onclick="toggleCamera('profile')" class="mt-1 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                             <i class="fas fa-camera mr-2"></i> Use Camera
                         </button>
+                        <button type="button" id="crop-button" onclick="openCropModal()" class="mt-1 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 hidden">
+                            <i class="fas fa-crop-alt mr-2"></i> Crop
+                        </button>
+                    </div>
+
+                    {{-- Cropping Modal --}}
+                    <div id="crop-modal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeCropModal()"></div>
+                            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full">
+                                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <h3 class="text-lg font-medium leading-6 text-gray-900">Crop Profile Photo</h3>
+                                        <button type="button" onclick="closeCropModal()" class="text-gray-400 hover:text-gray-500">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                    <div class="img-container rounded-lg overflow-hidden border border-gray-200 shadow-inner">
+                                        <img id="cropper-image" src="" crossorigin="anonymous">
+                                    </div>
+                                </div>
+                                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                                    <button type="button" onclick="applyCrop()" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
+                                        Apply Crop
+                                    </button>
+                                    <button type="button" onclick="closeCropModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     {{-- Camera UI --}}
@@ -204,8 +256,10 @@
 </div>
 
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js?v={{ time() }}"></script>
 <script>
     let stream = null;
+    window.cropper = null;
 
     function previewProfilePhoto(event) {
         const file = event.target.files[0];
@@ -214,10 +268,163 @@
             reader.onload = function(e) {
                 const preview = document.getElementById('profile-photo-preview');
                 const img = document.getElementById('profile-photo-img');
+                const cropBtn = document.getElementById('crop-button');
+                
                 img.src = e.target.result;
-                preview.classList.remove('hidden');
+                if(preview) preview.classList.remove('hidden');
+                if(img) img.classList.remove('hidden'); 
+                if(cropBtn) cropBtn.classList.remove('hidden');
             };
             reader.readAsDataURL(file);
+        }
+    }
+
+    // Cropping functions
+    function openCropModal() {
+        const previewImg = document.getElementById('profile-photo-img');
+        // relaxed check: ignore hidden class, focus on src availability
+        if (!previewImg || !previewImg.src || previewImg.src === window.location.href) {
+            alert('Please select or capture an image first.');
+            return;
+        }
+
+        const cropperImg = document.getElementById('cropper-image');
+        const modal = document.getElementById('crop-modal');
+        
+        // Show modal
+        modal.classList.remove('hidden');
+        
+        // Ensure modal is visible and layout is stable before defining cropper
+        if (window.cropper) {
+            window.cropper.destroy();
+            window.cropper = null;
+        }
+
+        // Set source and handle potential CORS
+        cropperImg.crossOrigin = 'anonymous';
+        cropperImg.src = previewImg.src;
+        
+        // Use a sufficient delay to ensure the image is loaded and modal rendered
+        setTimeout(() => {
+            window.cropper = new Cropper(cropperImg, {
+                aspectRatio: 1,
+                viewMode: 1,
+                dragMode: 'move',
+                autoCropArea: 0.9,
+                background: false,
+                restore: false,
+                guides: true,
+                center: true,
+                highlight: true,
+                cropBoxMovable: true,
+                cropBoxResizable: true,
+                checkOrientation: true,
+                ready: function() {
+                    console.log('Cropper is ready to capture.');
+                    this.cropper.crop(); // Ensure crop box is active
+                }
+            });
+        }, 400);
+    }
+
+    function closeCropModal() {
+        document.getElementById('crop-modal').classList.add('hidden');
+        if (window.cropper) {
+            window.cropper.destroy();
+            window.cropper = null;
+        }
+    }
+
+    function applyCrop() {
+        if (!window.cropper) {
+            alert('Cropper not initialized');
+            return;
+        }
+
+        try {
+            // Get the cropped canvas
+            const canvas = window.cropper.getCroppedCanvas({
+                width: 600,
+                height: 600,
+                imageSmoothingEnabled: true,
+                imageSmoothingQuality: 'high',
+            });
+
+            if (!canvas) {
+                alert('Could not generate cropped image.');
+                return;
+            }
+
+            // Convert to Blob for both preview and file input
+            canvas.toBlob((blob) => {
+                if (!blob) {
+                    alert('Crop failed: Image data empty.');
+                    return;
+                }
+
+                // Create a fresh URL from the blob
+                const blobUrl = URL.createObjectURL(blob);
+                
+                // 1. Force refresh the preview on the main page
+                const previewImg = document.getElementById('profile-photo-img');
+                if (previewImg) {
+                    const parent = previewImg.parentNode;
+                    const newImg = document.createElement('img');
+                    
+                    newImg.id = 'profile-photo-img';
+                    newImg.className = previewImg.className;
+                    newImg.style.cssText = previewImg.style.cssText;
+                    newImg.alt = "Profile Photo Preview";
+                    newImg.crossOrigin = 'anonymous';
+                    newImg.src = blobUrl;
+                    newImg.classList.remove('hidden');
+                    
+                    // Visual confirmation
+                    newImg.style.border = '4px solid #10b981';
+                    setTimeout(() => { newImg.style.border = ''; }, 1500);
+                    
+                    parent.replaceChild(newImg, previewImg);
+                }
+
+                const previewContainer = document.getElementById('profile-photo-preview');
+                if (previewContainer) {
+                    previewContainer.classList.remove('hidden');
+                }
+
+                // 2. Update the actual form file input
+            // 2. Update the actual form file input
+            canvas.toBlob((blob) => {
+                if (blob) {
+                    const file = new File([blob], 'cropped_' + Date.now() + '.jpg', { type: 'image/jpeg' });
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    
+                    const fileInput = document.getElementById('profile_photo');
+                    fileInput.files = dataTransfer.files;
+                    
+                    // Dispatch change event to ensure any listeners or form handling logic is triggered
+                    fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+                    
+                    console.log('Form file input updated with cropped image.');
+                    
+                    // Add a notification next to the button
+                    const btn = document.getElementById('crop-button');
+                    const originalContent = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check mr-2"></i> Cropped!';
+                    btn.classList.add('bg-green-50', 'text-green-700', 'border-green-200');
+                    setTimeout(() => {
+                        btn.innerHTML = originalContent;
+                        btn.classList.remove('bg-green-50', 'text-green-700', 'border-green-200');
+                    }, 3000);
+                }
+                
+                // 3. Close modal only after everything is successful
+                closeCropModal();
+            }, 'image/jpeg', 0.95);
+
+        } catch (error) {
+            console.error('Cropping error:', error);
+            alert('Error during cropping: ' + error.message);
         }
     }
 
@@ -389,6 +596,9 @@
                 const dataTransfer = new DataTransfer();
                 dataTransfer.items.add(file);
                 fileInput.files = dataTransfer.files;
+                
+                // Dispatch change event
+                fileInput.dispatchEvent(new Event('change', { bubbles: true }));
 
                 // Trigger preview
                 const event = { target: { files: [file] } };

@@ -1,5 +1,9 @@
 @extends('layouts.app')
 
+@push('styles')
+    {{-- Remove local styles if they are no longer needed --}}
+@endpush
+
 @section('header', 'Edit Student')
 
 @section('content')
@@ -73,7 +77,7 @@
                     {{-- Preview Area --}}
                     <div id="profile-photo-preview" class="mb-3 mt-2">
                         @if($student->profile_photo_path)
-                            <img id="profile-photo-img" src="{{ asset('storage/' . $student->profile_photo_path) }}" alt="Profile Photo" class="h-32 w-32 object-cover border-2 border-gray-300 rounded-lg shadow-sm">
+                            <img id="profile-photo-img" src="{{ asset('storage/' . $student->profile_photo_path) }}" crossorigin="anonymous" alt="Profile Photo" class="h-32 w-32 object-cover border-2 border-gray-300 rounded-lg shadow-sm">
                         @else
                             <img id="profile-photo-img" src="" alt="Profile Photo Preview" class="hidden h-32 w-32 object-cover border-2 border-gray-300 rounded-lg shadow-sm">
                         @endif
@@ -84,7 +88,13 @@
                         <button type="button" onclick="toggleCamera('profile')" class="mt-1 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                             <i class="fas fa-camera mr-2"></i> Use Camera
                         </button>
+                        <button type="button" id="crop-button" onclick="initiateCrop()" class="mt-1 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 {{ $student->profile_photo_path ? '' : 'hidden' }}">
+                            <i class="fas fa-crop-alt mr-2"></i> Crop
+                        </button>
                     </div>
+
+                    {{-- Cropping Modal (Reusable Component) --}}
+                    @include('components.modals.crop-image')
 
                     {{-- Camera UI --}}
                     <div id="camera-container-profile" class="hidden mt-3 p-4 bg-gray-50 border border-gray-200 rounded-lg">
@@ -213,6 +223,12 @@
 
 @push('scripts')
 <script>
+    function initiateCrop() {
+        openCropModal(null, "profile-photo-img", "profile_photo", function(blob) {
+            console.log("Image cropped successfully");
+            // Optional: visual feedback already handled by component
+        });
+    }
     let stream = null;
 
     function previewProfilePhoto(event) {
@@ -223,6 +239,7 @@
                 const img = document.getElementById('profile-photo-img');
                 img.src = e.target.result;
                 img.classList.remove('hidden');
+                document.getElementById('crop-button').classList.remove('hidden');
             };
             reader.readAsDataURL(file);
         }

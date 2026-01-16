@@ -85,6 +85,34 @@ class StudentController extends Controller
 
                     $btns .= '</div>';
 
+                    // Add Crop Button (Inline with other actions or somewhat separate)
+                    if (auth()->user()->can('student-edit')) {
+                        $photoUrl = $row->profile_photo_path ? asset('storage/'.$row->profile_photo_path) : 'null';
+                        // Escape single quotes for JS compatibility
+                        $photoUrl = str_replace("'", "\'", $photoUrl);
+
+                        // Append Crop Button to existing buttons container (removing the closing div first if needed, but here we construct a new string or just append)
+                        // Wait, previous code closed the div: $btns .= '</div>';
+                        // To make it look good, let's remove the closure, append, then close.
+                        // But since we can't easily undo the string concatenation efficiently without regex,
+                        // let's reopen the div or just append another div?
+                        // Better: Clean slate approach for this block.
+
+                        // Remove the last closing div from $btns to append
+                        $btns = substr($btns, 0, -6);
+
+                        $btns .= '<button onclick="openAjaxCrop('.$row->id.', \''.$photoUrl.'\')" data-id="'.$row->id.'" class="p-1 px-2 text-green-600 hover:bg-green-50 rounded-md transition-colors" title="Crop/Upload Photo">
+                                    <i class="fas fa-crop-alt"></i>
+                                  </button>';
+
+                        $btns .= '</div>';
+                    } else {
+                        // Ensure it's closed if no crop button
+                        // It was already closed by line 86 check above?
+                        // Actually line 86 was: $btns .= '</div>';
+                        // So if we enter this block, we need to undo that or handle it differently.
+                    }
+
                     return $btns;
                 })
                 ->rawColumns(['full_name', 'school_name', 'class', 'is_active', 'action'])
@@ -254,5 +282,29 @@ class StudentController extends Controller
         $student->delete();
 
         return redirect()->route('students.index')->with('success', 'Student deleted successfully.');
+    }
+
+    public function updatePhoto(Request $request, Student $student)
+    {
+        $request->validate([
+            'profile_photo' => 'required|image|max:2048', // 2MB Max
+        ]);
+
+        if ($request->hasFile('profile_photo')) {
+            $path = $request->file('profile_photo')->store('profile_photos', 'public');
+
+            $student->update([
+                'profile_photo_path' => $path,
+                'photo_path' => $path, // Sync legacy path
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile photo updated successfully',
+                'path' => asset('storage/'.$path),
+            ]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'No image file uploaded'], 400);
     }
 }

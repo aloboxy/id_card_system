@@ -24,6 +24,17 @@
     </div>
 </div>
 
+{{-- Crop Modal Component --}}
+@include('components.modals.crop-image')
+
+{{-- Hidden Form for AJAX Upload --}}
+<form id="ajax-upload-form" method="POST" enctype="multipart/form-data" class="hidden">
+    @csrf
+    @method('PUT')
+    <input type="file" id="ajax_profile_photo" name="profile_photo">
+    <input type="hidden" id="ajax_student_id" name="student_id_val">
+</form>
+
 @push('styles')
 <!-- DataTables CSS -->
 
@@ -51,7 +62,8 @@
 <!-- jQuery and DataTables JS -->
 <script>
     $(document).ready(function() {
-        $('#students-table').DataTable({
+        // DataTable Initialization
+        const table = $('#students-table').DataTable({
             processing: true,
             serverSide: true,
             dom: 'Blfrtip',
@@ -76,7 +88,7 @@
             ajax: "{{ route('students.index') }}",
             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
-                { data: 'full_name', name: 'full_name' }, // Note: sorting/searching might rely on accessor logic server-side if not configured
+                { data: 'full_name', name: 'full_name' },
                 { data: 'school_name', name: 'school.name' },
                 { data: 'class', name: 'class' }, 
                 { data: 'is_active', name: 'is_active' },
@@ -90,6 +102,115 @@
                 { className: "px-6 py-4", targets: "_all" }
             ]
         });
+
+        // Global function to trigger crop from DataTable actions
+        window.openAjaxCrop = function(studentId, currentPhotoUrl) {
+            // If no photo exists, trigger file input directly
+            if (!currentPhotoUrl || currentPhotoUrl === 'null') {
+                 // Set context for when file is selected
+                 window.pendingStudentId = studentId;
+                 document.getElementById('ajax_profile_photo').click();
+                 return;
+            }
+
+            // If photo exists, open crop modal directly
+            startAjaxCropProcess(studentId, currentPhotoUrl);
+        };
+
+        // Handle file selection from empty state
+        document.getElementById('ajax_profile_photo').addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0] && window.pendingStudentId) {
+                const file = e.target.files[0];
+                startAjaxCropProcess(window.pendingStudentId, file);
+                // Clear pending ID
+                window.pendingStudentId = null;
+            }
+        });
+
+        function startAjaxCropProcess(studentId, source) {
+             // Use the shared component function
+             // We pass 'null' for imgId since we don't have a preview on this page to update
+             // We pass 'ajax_profile_photo' as inputId to hold the final blob
+             openCropModal(source, null, 'ajax_profile_photo', function(blob) {
+                // Determine callback: upload immediately
+                uploadCroppedImage(studentId, blob);
+             });
+        }
+
+        function uploadCroppedImage(studentId, blob) {
+             const formData = new FormData();
+             formData.append('profile_photo', blob, 'cropped_update.jpg');
+             // formData.append('_method', 'PUT'); // Removed: Route is registered as POST
+             formData.append('_token', '{{ csrf_token() }}');
+
+             // Show loading state
+             const btn = document.querySelector(`button[data-id="${studentId}"]`);
+             if(btn) {
+                 const originalHtml = btn.innerHTML;
+                 btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                 btn.disabled = true;
+             }
+
+             console.log('Starting upload for student:', studentId);
+             if(!blob) {
+                 console.error('No blob data to upload!');
+                 alert('Error: Image data is empty.');
+                 return;
+             }
+
+             // Assuming you have an endpoint like /students/{id}/update-photo
+             // Or reusing the main update route but sending minimal data?
+             // Since we don't have a specific lightweight route, we might need one or create a special handler.
+             // For now, let's assume we can utilize the main update route if we are careful, 
+             // but usually a dedicated API endpoint is better to avoid validation errors on missing fields.
+             // Let's use a specialized route that we will create next.
+             
+             fetch(`/students/${studentId}/update-photo`, {
+                 method: 'POST',
+                 body: formData,
+                 headers: {
+                     'X-Requested-With': 'XMLHttpRequest',
+                     'Accept': 'application/json'
+                 }
+             })
+             .then(async response => {
+                 const contentType = response.headers.get("content-type");
+                 if (!response.ok) {
+                    // Try to get error message from JSON or text
+                    if (contentType && contentType.indexOf("application/json") !== -1) {
+                         const err = await response.json();
+                         throw new Error(err.message || 'Server returned an error.');
+                    } else {
+                         const text = await response.text();
+                         console.error('Server HTML Error:', text);
+                         throw new Error('Server error (check console for details). Status: ' + response.status);
+                    }
+                 }
+                 return response.json();
+             })
+             .then(data => {
+                 if(data.success) {
+                     // Reload table
+                     table.ajax.reload(null, false);
+                     // Show a less intrusive notification or keep alert for now
+                     // alert('Photo updated successfully!'); 
+                     // Let's use a console log + button success state to not block UI
+                     console.log('Success:', data.message);
+                 } else {
+                     alert('Failed to update photo: ' + (data.message || 'Unknown error'));
+                 }
+             })
+             .catch(error => {
+                 console.error('Upload Error:', error);
+                 alert('Error uploading image: ' + error.message);
+             })
+             .finally(() => {
+                 if(btn) {
+                    btn.innerHTML = originalHtml; // Restore button (though row might be reloaded)
+                    btn.disabled = false;
+                 }
+             });
+        }
     });
 </script>
 @endpush
