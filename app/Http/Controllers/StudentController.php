@@ -25,6 +25,10 @@ class StudentController extends Controller
         if ($request->ajax()) {
             $data = Student::with('school')->select('students.*');
 
+            if ($request->has('school_id') && $request->school_id != '') {
+                $data->where('school_id', $request->school_id);
+            }
+
             return DataTables::of($data)
                 ->addIndexColumn()
                 ->addColumn('full_name', function ($row) {

@@ -25,4 +25,14 @@ class School extends Model
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    public function students()
+    {
+        return $this->hasMany(Student::class);
+    }
+
+    public function staff()
+    {
+        return $this->hasMany(Staff::class);
+    }
 }

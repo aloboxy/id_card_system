@@ -25,6 +25,10 @@ class StaffController extends Controller
         if ($request->ajax()) {
             $data = Staff::with('school')->select('staff.*');
 
+            if ($request->has('school_id') && $request->school_id != '') {
+                $data->where('school_id', $request->school_id);
+            }
+
             return DataTables::of($data)
                 ->addIndexColumn()
                 ->addColumn('full_name', function ($row) {
@@ -83,6 +87,16 @@ class StaffController extends Controller
                             </form>';
                     }
                     
+                    if(auth()->user()->can('staff-edit')){
+                         $photoUrl = $row->profile_photo_path ? asset('storage/'.$row->profile_photo_path) : 'null';
+                         // Escape single quotes
+                         $photoUrl = str_replace("'", "\'", $photoUrl);
+
+                         $btns .= '<button onclick="openAjaxCrop('.$row->id.', \''.$photoUrl.'\')" data-id="'.$row->id.'" class="p-1 px-2 text-green-600 hover:bg-green-50 rounded-md transition-colors" title="Crop/Upload Photo">
+                                    <i class="fas fa-crop-alt"></i>
+                                  </button>';
+                    }
+
                     $btns .= '</div>';
                     return $btns;
                 })
@@ -253,5 +267,28 @@ class StaffController extends Controller
         $staff->delete();
 
         return redirect()->route('staff.index')->with('success', 'Staff member deleted successfully.');
+    }
+
+    public function updatePhoto(Request $request, Staff $staff)
+    {
+        $request->validate([
+            'profile_photo' => 'required|image|max:2048', // 2MB Max
+        ]);
+
+        if ($request->hasFile('profile_photo')) {
+            $path = $request->file('profile_photo')->store('staff_photos', 'public');
+
+            $staff->update([
+                'profile_photo_path' => $path,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile photo updated successfully',
+                'path' => asset('storage/'.$path),
+            ]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'No image file uploaded'], 400);
     }
 }

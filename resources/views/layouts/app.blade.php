@@ -64,6 +64,10 @@
                     <i class="fas fa-school w-6"></i>
                     <span class="font-medium">Schools</span>
                 </a>
+                <a href="{{ route('reports.schools') }}" class="flex items-center px-4 py-3 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors {{ request()->routeIs('reports.*') ? 'bg-indigo-50 text-indigo-600' : '' }}">
+                    <i class="fas fa-chart-pie w-6"></i>
+                    <span class="font-medium">School Reports</span>
+                </a>
                 <a href="{{ route('staff.index') }}" class="flex items-center px-4 py-3 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors {{ request()->routeIs('staff.*') ? 'bg-indigo-50 text-indigo-600' : '' }}">
                     <i class="fas fa-chalkboard-teacher w-6"></i>
                     <span class="font-medium">Staff</span>
