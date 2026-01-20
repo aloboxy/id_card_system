@@ -232,23 +232,45 @@ class IdCardTemplateController extends Controller
     /**
      * Show the generation view.
      */
-    public function generate(IdCardTemplate $idCardTemplate)
+    /**
+     * Show the generation view.
+     */
+    public function generate(Request $request, IdCardTemplate $idCardTemplate)
     {
         // For MVP, just get all records from the same school (or all for now)
         // In a real app, we'd have a selection step
         $records = collect();
+        $ids = $request->input('ids');
+
+        if ($ids && is_string($ids)) {
+             $ids = explode(',', $ids);
+        }
         
         if ($idCardTemplate->role === 'staff') {
-            $records = \App\Models\Staff::where('school_id', $idCardTemplate->school_id)->get();
-            // If no staff found for the school, just get first 5 for demo purposes if dev
-            if ($records->isEmpty()) {
+            $query = \App\Models\Staff::where('school_id', $idCardTemplate->school_id);
+            
+            if (!empty($ids)) {
+                $query->whereIn('id', $ids);
+            }
+            
+            $records = $query->get();
+
+            // If no staff found for the school (and no IDs filtered), just get first 5 for demo purposes if dev
+            if ($records->isEmpty() && empty($ids)) {
                 $records = \App\Models\Staff::take(5)->get();
             }
         } else {
             // Default to student
-            $records = \App\Models\Student::where('school_id', $idCardTemplate->school_id)->get();
-            // If no students found for the school, just get first 5 for demo purposes if dev
-            if ($records->isEmpty()) {
+            $query = \App\Models\Student::where('school_id', $idCardTemplate->school_id);
+             
+            if (!empty($ids)) {
+                $query->whereIn('id', $ids);
+            }
+
+            $records = $query->get();
+
+            // If no students found for the school (and no IDs filtered), just get first 5 for demo purposes if dev
+            if ($records->isEmpty() && empty($ids)) {
                 $records = \App\Models\Student::take(5)->get();
             }
         }
@@ -264,6 +286,21 @@ class IdCardTemplateController extends Controller
             'school_expiry_date' => $school_expiry_data,
             'school_issue_date' => $school_issue_data,
         ]);
+    }
+
+    /**
+     * Get templates by school and role (AJAX).
+     */
+    public function getTemplates(Request $request)
+    {
+        $schoolId = $request->query('school_id');
+        $role = $request->query('role');
+        
+        $templates = IdCardTemplate::where('school_id', $schoolId)
+                    ->where('role', $role)
+                    ->get(['id', 'name']);
+                    
+        return response()->json($templates);
     }
 
     /**

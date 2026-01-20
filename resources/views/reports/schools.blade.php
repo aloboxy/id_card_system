@@ -15,7 +15,7 @@
 <div class="space-y-6">
     <!-- Filter Card -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
             <!-- School Selection -->
             <div>
                 <label for="school_select" class="block text-sm font-medium text-gray-700 mb-2">Select School</label>
@@ -36,10 +36,21 @@
                 </select>
             </div>
 
-            <!-- Actions -->
+            <!-- Template Selection -->
             <div>
-                 <button id="load_data_btn" class="w-full inline-flex justify-center items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring ring-indigo-300 disabled:opacity-25 transition ease-in-out duration-150" disabled>
+                <label for="template_select" class="block text-sm font-medium text-gray-700 mb-2">Select Template</label>
+                <select id="template_select" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" disabled>
+                    <option value="">-- Choose Template --</option>
+                </select>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex space-x-2">
+                 <button id="load_data_btn" class="flex-1 inline-flex justify-center items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring ring-indigo-300 disabled:opacity-25 transition ease-in-out duration-150" disabled>
                     Load Data
+                </button>
+                 <button id="generate_btn" class="flex-1 inline-flex justify-center items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:border-green-900 focus:ring ring-green-300 disabled:opacity-25 transition ease-in-out duration-150" disabled>
+                    Generate Cards
                 </button>
             </div>
         </div>
@@ -86,6 +97,10 @@
     table.dataTable.no-footer {
         border-bottom: 1px solid #e5e7eb;
     }
+    /* Checkbox styles */
+    .select-checkbox {
+        cursor: pointer;
+    }
 </style>
 @endpush
 
@@ -99,7 +114,9 @@
     // Elements
     const schoolSelect = document.getElementById('school_select');
     const categorySelect = document.getElementById('category_select');
+    const templateSelect = document.getElementById('template_select');
     const loadBtn = document.getElementById('load_data_btn');
+    const generateBtn = document.getElementById('generate_btn');
     const dataContainer = document.getElementById('data-container');
     const emptyState = document.getElementById('empty-state');
     const tableHead = document.getElementById('table-head');
@@ -110,11 +127,69 @@
         if(this.value) {
             categorySelect.disabled = false;
             loadBtn.disabled = false;
+            fetchTemplates();
         } else {
             categorySelect.disabled = true;
+            templateSelect.disabled = true;
             loadBtn.disabled = true;
+            generateBtn.disabled = true;
+            templateSelect.innerHTML = '<option value="">-- Choose Template --</option>';
         }
     });
+
+    categorySelect.addEventListener('change', function() {
+        fetchTemplates();
+    });
+    
+    templateSelect.addEventListener('change', function() {
+        checkGenerateButton();
+    });
+
+    function fetchTemplates() {
+        const schoolId = schoolSelect.value;
+        const category = categorySelect.value;
+        const role = category === 'students' ? 'student' : 'staff';
+        
+        if (!schoolId) return;
+
+        templateSelect.innerHTML = '<option value="">Loading...</option>';
+        templateSelect.disabled = true;
+
+        fetch(`{{ route('id-card-templates.get-by-school') }}?school_id=${schoolId}&role=${role}`)
+            .then(response => response.json())
+            .then(data => {
+                let options = '<option value="">-- Choose Template --</option>';
+                data.forEach(template => {
+                    options += `<option value="${template.id}">${template.name}</option>`;
+                });
+                templateSelect.innerHTML = options;
+                templateSelect.disabled = false;
+                checkGenerateButton();
+            })
+            .catch(error => {
+                console.error('Error fetching templates:', error);
+                templateSelect.innerHTML = '<option value="">Error Loading</option>';
+            });
+    }
+
+    // Check if Generate button should be enabled
+    function checkGenerateButton() {
+        const hasTemplate = templateSelect.value !== '';
+        // Check if any checkbox is checked (will implement selection tracking)
+        const hasSelection = getSelectedIds().length > 0;
+        
+        generateBtn.disabled = !(hasTemplate && hasSelection);
+    }
+    
+    function getSelectedIds() {
+        if (!table) return [];
+        
+        const selected = [];
+        $('.row-checkbox:checked').each(function() {
+            selected.push($(this).val());
+        });
+        return selected;
+    }
 
     loadBtn.addEventListener('click', function() {
         selectedSchoolId = schoolSelect.value;
@@ -123,6 +198,35 @@
         if(!selectedSchoolId) return;
 
         loadTable(selectedSchoolId, selectedCategory);
+    });
+    
+    generateBtn.addEventListener('click', function() {
+        const templateId = templateSelect.value;
+        const ids = getSelectedIds();
+        
+        if (!templateId || ids.length === 0) return;
+        
+        // Create a hidden form to submit
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/id-card-templates/${templateId}/generate`;
+        form.target = '_blank'; // Open in new tab
+        
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = '_token';
+        csrfInput.value = '{{ csrf_token() }}';
+        form.appendChild(csrfInput);
+        
+        const idsInput = document.createElement('input');
+        idsInput.type = 'hidden';
+        idsInput.name = 'ids';
+        idsInput.value = ids.join(',');
+        form.appendChild(idsInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
     });
 
     function loadTable(schoolId, category) {
@@ -146,6 +250,7 @@
             url = "{{ route('students.index') }}";
             headerHtml = `
                 <tr>
+                    <th class="px-6 py-3 font-medium"><input type="checkbox" id="select-all"></th>
                     <th class="px-6 py-3 font-medium">No</th>
                     <th class="px-6 py-3 font-medium">Name / ID</th>
                     <th class="px-6 py-3 font-medium">Class</th>
@@ -154,6 +259,15 @@
                 </tr>
             `;
             columns = [
+                { 
+                    data: 'id', 
+                    name: 'id', 
+                    orderable: false, 
+                    searchable: false,
+                    render: function(data, type, row) {
+                        return `<input type="checkbox" class="row-checkbox form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out" value="${data}">`;
+                    }
+                },
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
                 { data: 'full_name', name: 'full_name' },
                 { data: 'class', name: 'class' },
@@ -165,6 +279,7 @@
             url = "{{ route('staff.index') }}";
             headerHtml = `
                 <tr>
+                    <th class="px-6 py-3 font-medium"><input type="checkbox" id="select-all"></th>
                     <th class="px-6 py-3 font-medium">No</th>
                     <th class="px-6 py-3 font-medium">Name / ID</th>
                     <th class="px-6 py-3 font-medium">Designation</th>
@@ -173,6 +288,15 @@
                 </tr>
             `;
             columns = [
+                { 
+                    data: 'id', 
+                    name: 'id', 
+                    orderable: false, 
+                    searchable: false,
+                     render: function(data, type, row) {
+                        return `<input type="checkbox" class="row-checkbox form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out" value="${data}">`;
+                    }
+                },
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
                 { data: 'full_name', name: 'full_name' },
                 { data: 'designation', name: 'designation' },
@@ -204,7 +328,30 @@
             dom: 'Blfrtip',
             buttons: [
                 'copy', 'excel', 'pdf', 'print'
-            ]
+            ],
+            drawCallback: function() {
+                // Re-bind events on draw
+                bindCheckboxEvents();
+                checkGenerateButton();
+            }
+        });
+    }
+
+    function bindCheckboxEvents() {
+        // Select All Handler
+        $('#select-all').off('click').on('click', function() {
+            const isChecked = $(this).is(':checked');
+            $('.row-checkbox').prop('checked', isChecked);
+            checkGenerateButton();
+        });
+
+        // Individual Checkbox Handler
+        $('.row-checkbox').off('change').on('change', function() {
+             checkGenerateButton();
+             
+             // Update Select All state
+             const allChecked = $('.row-checkbox:checked').length === $('.row-checkbox').length;
+             $('#select-all').prop('checked', allChecked);
         });
     }
 

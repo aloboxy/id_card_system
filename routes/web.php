@@ -23,8 +23,9 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('schools', App\Http\Controllers\SchoolController::class);
         Route::resource('staff', App\Http\Controllers\StaffController::class);
         Route::post('/staff/{staff}/update-photo', [App\Http\Controllers\StaffController::class, 'updatePhoto'])->name('staff.update-photo');
+        Route::get('id-card-templates/get-by-school', [App\Http\Controllers\IdCardTemplateController::class, 'getTemplates'])->name('id-card-templates.get-by-school');
         Route::resource('id-card-templates', App\Http\Controllers\IdCardTemplateController::class);
-        Route::get('id-card-templates/{id_card_template}/generate', [App\Http\Controllers\IdCardTemplateController::class, 'generate'])->name('id-card-templates.generate');
+        Route::any('id-card-templates/{id_card_template}/generate', [App\Http\Controllers\IdCardTemplateController::class, 'generate'])->name('id-card-templates.generate');
         Route::post('id-card-templates/{id_card_template}/toggle-status', [App\Http\Controllers\IdCardTemplateController::class, 'toggleStatus'])->name('id-card-templates.toggle-status');
 
         // System Settings
