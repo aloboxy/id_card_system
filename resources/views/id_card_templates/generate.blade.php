@@ -154,7 +154,7 @@
             const templateDataFront = @json($template->design_data);
             const templateDataBack = @json($template->design_data_back);
             const records = @json($records->each(function ($record) {
-                $record->append('photo_url');
+                $record->append(['photo_url', 'qr_code_url']);
             }));
             const templateWidth = {{ $template->width }};
             const templateHeight = {{ $template->height }};

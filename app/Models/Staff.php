@@ -91,4 +91,42 @@ class Staff extends Model
     {
         return $query->where('is_active', true);
     }
+
+    /**
+     * Generate QR code URL for the staff.
+     */
+    public function getQrCodeUrlAttribute(): string
+    {
+        $school = $this->school;
+
+        $qrData = "=== STAFF ID CARD ===\n\n";
+
+        if ($school) {
+            $qrData .= "School: {$school->name}\n";
+        }
+
+        $qrData .= "Staff ID: {$this->staff_id}\n";
+        $qrData .= "Name: {$this->first_name} {$this->last_name}\n";
+
+        if ($this->designation) {
+            $qrData .= "Designation: {$this->designation}\n";
+        }
+
+        if ($this->department) {
+            $qrData .= "Department: {$this->department}\n";
+        }
+
+        if ($this->joining_date) {
+            $qrData .= "Joining Date: {$this->joining_date->format('Y-m-d')}\n";
+        }
+
+        // Force UTF-8 encoding
+        $qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::encoding('UTF-8')
+            ->size(200)
+            ->format('svg')
+            ->errorCorrection('H')
+            ->generate($qrData);
+
+        return 'data:image/svg+xml;base64,' . base64_encode($qrCode);
+    }
 }
