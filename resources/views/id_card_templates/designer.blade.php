@@ -252,13 +252,21 @@
                             <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Student
                                 Placeholders</h4>
                             <div class="space-y-2">
-                                <button onclick="addPlaceholder('full_name', 'Student Name')"
+                                <button onclick="addPlaceholder('first_name', 'First Name')"
                                     class="w-full flex items-center px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md text-sm transition-colors">
-                                    <i class="fas fa-user w-5"></i> Name
+                                    <i class="fas fa-user w-5"></i> First Name
                                 </button>
                                 <button onclick="addPlaceholder('middle_name', 'Middle Name')"
                                     class="w-full flex items-center px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md text-sm transition-colors">
                                     <i class="fas fa-user w-5"></i> Middle Name
+                                </button>
+                                <button onclick="addPlaceholder('last_name', 'Last Name')"
+                                    class="w-full flex items-center px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md text-sm transition-colors">
+                                    <i class="fas fa-user w-5"></i> Last Name
+                                </button>
+                                <button onclick="addPlaceholder('full_name', 'Full Name')"
+                                    class="w-full flex items-center px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md text-sm transition-colors">
+                                    <i class="fas fa-users w-5"></i> Full Name
                                 </button>
                                 <button onclick="addPlaceholder('student_id', 'Student ID')"
                                     class="w-full flex items-center px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md text-sm transition-colors">
@@ -281,13 +289,21 @@
                             <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Staff Placeholders
                             </h4>
                             <div class="space-y-2">
-                                <button onclick="addPlaceholder('full_name', 'Staff Name')"
+                                <button onclick="addPlaceholder('first_name', 'First Name')"
                                     class="w-full flex items-center px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md text-sm transition-colors">
-                                    <i class="fas fa-user w-5"></i> Name
+                                    <i class="fas fa-user w-5"></i> First Name
                                 </button>
                                 <button onclick="addPlaceholder('middle_name', 'Middle Name')"
                                     class="w-full flex items-center px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md text-sm transition-colors">
                                     <i class="fas fa-user w-5"></i> Middle Name
+                                </button>
+                                <button onclick="addPlaceholder('last_name', 'Last Name')"
+                                    class="w-full flex items-center px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md text-sm transition-colors">
+                                    <i class="fas fa-user w-5"></i> Last Name
+                                </button>
+                                <button onclick="addPlaceholder('full_name', 'Full Name')"
+                                    class="w-full flex items-center px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md text-sm transition-colors">
+                                    <i class="fas fa-users w-5"></i> Full Name
                                 </button>
                                 <button onclick="addPlaceholder('staff_id', 'Staff ID')"
                                     class="w-full flex items-center px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md text-sm transition-colors">
@@ -645,11 +661,14 @@
 
                         const fieldMap = {
                             'Full Name': 'full_name',
+                            'First Name': 'first_name',
+                            'Middle Name': 'middle_name',
+                            'Last Name': 'last_name',
                             'Student Name': 'full_name',
                             'Staff Name': 'full_name',
-                            'Middle Name': 'middle_name',
                             'Student ID': 'student_id',
                             'Staff ID': 'staff_id',
+                            'Class & Section': 'class_with_section',
                             'Phone': 'phone',
                             'Email': 'email',
                             'Issue Date': 'issue_date',

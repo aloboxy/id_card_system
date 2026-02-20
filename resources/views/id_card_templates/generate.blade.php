@@ -198,14 +198,14 @@
                         progressText.innerText = `Processing ${i + 1} of ${records.length}`;
                         progressPercent.innerText = `${percent}%`;
                         progressBar.style.width = `${percent}%`;
-                        statusDetail.innerText = `Generating ID for: ${record.first_name} ${record.last_name}`;
+                        statusDetail.innerText = `Generating ID for: ${record.full_name}`;
 
                         // Generate Front
                         await renderToCanvas(canvasFront, templateDataFront, record, school_issue_date, school_expiry_date);
                         const frontBlob = await getCanvasBlob(canvasFront);
                         // Use student_id or staff_id or just name for filename
                         const id = record.student_id || record.staff_id || 'id';
-                        const name = (record.first_name + '_' + record.last_name).replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                        const name = (record.full_name).replace(/[^a-z0-9]/gi, '_').toLowerCase();
                         zip.file(`${name}_${id}_front.jpg`, frontBlob);
 
                         // Generate Back
@@ -282,8 +282,10 @@
 
                                     switch (field) {
                                         // Common
-                                        case 'full_name': value = record.first_name + (record.middle_name ? ' ' + record.middle_name : '') + ' ' + record.last_name; break;
+                                        case 'full_name': value = record.full_name; break;
+                                        case 'first_name': value = record.first_name || ''; break;
                                         case 'middle_name': value = record.middle_name || ''; break;
+                                        case 'last_name': value = record.last_name || ''; break;
                                         case 'phone': value = record.phone || ''; break;
                                         case 'email': value = record.email || ''; break;
                                         case 'issue_date': value = school_issue_date; break;
@@ -292,7 +294,7 @@
                                         // Student Specific
                                         case 'student_id': value = record.student_id || ''; break;
                                         case 'class': value = record.class || ''; break;
-                                        case 'class_with_section': value = (record.class || '') + (record.section ? ' - ' + record.section : ''); break;
+                                        case 'class_with_section': value = record.class_with_section || ''; break;
                                         case 'dob': value = record.date_of_birth ? new Date(record.date_of_birth).toLocaleDateString() : ''; break;
 
                                         // Staff Specific
@@ -313,8 +315,10 @@
                                     const originalText = text;
 
                                     // Common Placeholders
-                                    text = text.replace(/\{\{full_name\}\}/gi, record.first_name + (record.middle_name ? ' ' + record.middle_name : '') + ' ' + record.last_name);
+                                    text = text.replace(/\{\{full_name\}\}/gi, record.full_name);
+                                    text = text.replace(/\{\{first_name\}\}/gi, record.first_name || '');
                                     text = text.replace(/\{\{middle_name\}\}/gi, record.middle_name || '');
+                                    text = text.replace(/\{\{last_name\}\}/gi, record.last_name || '');
                                     text = text.replace(/\{\{phone\}\}/gi, record.phone || '');
                                     text = text.replace(/\{\{email\}\}/gi, record.email || '');
                                     text = text.replace(/\{\{issue_date\}\}/gi, school_issue_date);
@@ -323,7 +327,7 @@
 
                                     // Student Placeholders
                                     text = text.replace(/\{\{student_id\}\}/gi, record.student_id || '');
-                                    text = text.replace(/\{\{class_with_section\}\}/gi, (record.class || '') + (record.section ? ' - ' + record.section : ''));
+                                    text = text.replace(/\{\{class_with_section\}\}/gi, record.class_with_section || '');
                                     text = text.replace(/\{\{class\}\}/gi, record.class || '');
 
                                     // Staff Placeholders
@@ -333,13 +337,17 @@
                                     text = text.replace(/\{\{joining_date\}\}/gi, record.joining_date || '');
 
                                     // Legacy/Friendly Names support
-                                    text = text.replace(/\{\{Student Name\}\}/gi, record.first_name + (record.middle_name ? ' ' + record.middle_name : '') + ' ' + record.last_name);
-                                    text = text.replace(/\{\{Staff Name\}\}/gi, record.first_name + (record.middle_name ? ' ' + record.middle_name : '') + ' ' + record.last_name);
+                                    text = text.replace(/\{\{Student Name\}\}/gi, record.full_name);
+                                    text = text.replace(/\{\{Staff Name\}\}/gi, record.full_name);
+                                    text = text.replace(/\{\{First Name\}\}/gi, record.first_name || '');
                                     text = text.replace(/\{\{Middle Name\}\}/gi, record.middle_name || '');
+                                    text = text.replace(/\{\{Last Name\}\}/gi, record.last_name || '');
                                     text = text.replace(/\{\{Student ID\}\}/gi, record.student_id || '');
                                     text = text.replace(/\{\{Staff ID\}\}/gi, record.staff_id || '');
-                                    text = text.replace(/\{\{Class & Section\}\}/gi, (record.class || '') + (record.section ? ' - ' + record.section : ''));
+                                    text = text.replace(/\{\{Class (&|&amp;) Section\}\}/gi, record.class_with_section || '');
+                                    text = text.replace(/\{\{class_with_section\}\}/gi, record.class_with_section || '');
                                     text = text.replace(/\{\{Class\}\}/gi, record.class || '');
+                                    text = text.replace(/\{\{class\}\}/gi, record.class || '');
                                     text = text.replace(/\{\{Issue Date\}\}/gi, school_issue_date);
                                     text = text.replace(/\{\{Expiry Date\}\}/gi, school_expiry_date);
 

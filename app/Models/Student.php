@@ -15,7 +15,7 @@ class Student extends Model
     /**
      * The attributes that should be appended to the model's array form.
      */
-    protected $appends = ['qr_code_url', 'class_with_section'];
+    protected $appends = ['full_name', 'photo_url', 'qr_code_url', 'class_with_section'];
 
     /**
      * The attributes that are mass assignable.
@@ -80,7 +80,7 @@ class Student extends Model
      */
     public function getFullNameAttribute(): string
     {
-        return "{$this->first_name} {$this->middle_name} {$this->last_name}";
+        return trim("{$this->first_name} {$this->middle_name} {$this->last_name}");
     }
 
     /**
@@ -155,9 +155,10 @@ class Student extends Model
      */
     public function getClassWithSectionAttribute(): string
     {
+        $class = $this->class ?? '';
         return $this->section
-            ? "{$this->class} - {$this->section}"
-            : $this->class;
+            ? "{$class} - {$this->section}"
+            : (string) $class;
     }
 
     /**
@@ -174,11 +175,7 @@ public function getQrCodeUrlAttribute(): string
     }
 
     $qrData .= "Student ID: {$this->student_id}\n";
-    $qrData .= "Name: {$this->first_name} {$this->last_name}\n";
-
-    if ($this->middle_name) {
-        $qrData .= "Middle Name: {$this->middle_name}\n";
-    }
+    $qrData .= "Name: {$this->full_name}\n";
 
     $qrData .= "Class: {$this->class}\n";
 

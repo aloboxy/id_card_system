@@ -35,6 +35,13 @@ class Staff extends Model
     ];
 
     /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array<int, string>
+     */
+    protected $appends = ['full_name', 'photo_url', 'qr_code_url'];
+
+    /**
      * The attributes that should be cast.
      *
      * @var array<string, string>
@@ -49,7 +56,7 @@ class Staff extends Model
      */
     public function getFullNameAttribute(): string
     {
-        return "{$this->first_name} {$this->middle_name} {$this->last_name}";
+        return trim("{$this->first_name} {$this->middle_name} {$this->last_name}");
     }
 
     /**
