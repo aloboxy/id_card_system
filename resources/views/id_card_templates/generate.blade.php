@@ -282,7 +282,8 @@
 
                                     switch (field) {
                                         // Common
-                                        case 'full_name': value = record.first_name + ' ' + record.last_name; break;
+                                        case 'full_name': value = record.first_name + (record.middle_name ? ' ' + record.middle_name : '') + ' ' + record.last_name; break;
+                                        case 'middle_name': value = record.middle_name || ''; break;
                                         case 'phone': value = record.phone || ''; break;
                                         case 'email': value = record.email || ''; break;
                                         case 'issue_date': value = school_issue_date; break;
@@ -312,7 +313,8 @@
                                     const originalText = text;
 
                                     // Common Placeholders
-                                    text = text.replace(/\{\{full_name\}\}/gi, record.first_name + ' ' + record.last_name);
+                                    text = text.replace(/\{\{full_name\}\}/gi, record.first_name + (record.middle_name ? ' ' + record.middle_name : '') + ' ' + record.last_name);
+                                    text = text.replace(/\{\{middle_name\}\}/gi, record.middle_name || '');
                                     text = text.replace(/\{\{phone\}\}/gi, record.phone || '');
                                     text = text.replace(/\{\{email\}\}/gi, record.email || '');
                                     text = text.replace(/\{\{issue_date\}\}/gi, school_issue_date);
@@ -331,8 +333,9 @@
                                     text = text.replace(/\{\{joining_date\}\}/gi, record.joining_date || '');
 
                                     // Legacy/Friendly Names support
-                                    text = text.replace(/\{\{Student Name\}\}/gi, record.first_name + ' ' + record.last_name);
-                                    text = text.replace(/\{\{Staff Name\}\}/gi, record.first_name + ' ' + record.last_name);
+                                    text = text.replace(/\{\{Student Name\}\}/gi, record.first_name + (record.middle_name ? ' ' + record.middle_name : '') + ' ' + record.last_name);
+                                    text = text.replace(/\{\{Staff Name\}\}/gi, record.first_name + (record.middle_name ? ' ' + record.middle_name : '') + ' ' + record.last_name);
+                                    text = text.replace(/\{\{Middle Name\}\}/gi, record.middle_name || '');
                                     text = text.replace(/\{\{Student ID\}\}/gi, record.student_id || '');
                                     text = text.replace(/\{\{Staff ID\}\}/gi, record.staff_id || '');
                                     text = text.replace(/\{\{Class & Section\}\}/gi, (record.class || '') + (record.section ? ' - ' + record.section : ''));
