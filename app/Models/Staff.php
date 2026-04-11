@@ -115,6 +115,10 @@ class Staff extends Model
         $qrData .= "Staff ID: {$this->staff_id}\n";
         $qrData .= "Name: {$this->first_name} {$this->last_name}\n";
 
+        if ($this->phone) {
+            $qrData .= "Phone: {$this->phone}\n";
+        }
+
         if ($this->designation) {
             $qrData .= "Designation: {$this->designation}\n";
         }
